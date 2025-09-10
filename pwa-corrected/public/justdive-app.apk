@@ -1,0 +1,25 @@
+# JUSTDIVE Mobile App APK
+# Este é um arquivo simulado para demonstração
+# Em produção, este seria o APK real compilado do React Native
+
+JUSTDIVE Academy - Mobile Application
+Version: 1.0.0
+Build: 2025.09.10
+Platform: Android
+
+Features:
+- Native weather widget for home screen
+- Push notifications
+- Offline functionality
+- Real-time weather monitoring
+- AI Assistant integration
+- Class scheduling and management
+
+Installation:
+1. Enable "Unknown Sources" in Android Settings
+2. Download and install this APK
+3. Grant necessary permissions
+4. Enjoy the full JUSTDIVE experience!
+
+© 2025 JUSTDIVE Academy - All rights reserved
+
