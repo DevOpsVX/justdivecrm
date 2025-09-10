@@ -1,0 +1,54 @@
+{
+  "name": "JUSTDIVE - Academia de Mergulho",
+  "short_name": "JUSTDIVE",
+  "description": "Sistema de gestão profissional para academia de mergulho",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1220",
+  "theme_color": "#18B6E6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "sports", "business"],
+  "shortcuts": [
+    {
+      "name": "Status da Aula",
+      "short_name": "Status",
+      "description": "Verificar condições e status da aula",
+      "url": "/p/status",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Admin",
+      "short_name": "Dashboard",
+      "description": "Painel administrativo",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
+
