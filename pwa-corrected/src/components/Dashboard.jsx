@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -16,6 +17,7 @@ import WeatherWidget from './WeatherWidget'
 import AIChat from './AIChat'
 
 const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
+  const navigate = useNavigate()
   const [showAIChat, setShowAIChat] = useState(false)
   const [stats] = useState({
     totalStudents: 45,
@@ -40,11 +42,11 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
   ])
 
   const menuItems = [
-    { icon: BarChart3, label: 'Operações Meteorológicas', color: 'bg-blue-600' },
-    { icon: Calendar, label: 'Reservas', color: 'bg-green-600' },
-    { icon: Users, label: 'Alunos', color: 'bg-purple-600' },
-    { icon: MessageSquare, label: 'Mensagens', color: 'bg-orange-600' },
-    { icon: Settings, label: 'Simulador', color: 'bg-gray-600' }
+    { icon: BarChart3, label: 'Operações Meteorológicas', color: 'bg-blue-600', path: '/operations' },
+    { icon: Calendar, label: 'Reservas', color: 'bg-green-600', path: '/reservations' },
+    { icon: Users, label: 'Alunos', color: 'bg-purple-600', path: '/students' },
+    { icon: MessageSquare, label: 'Mensagens', color: 'bg-orange-600', path: '/messages' },
+    { icon: Settings, label: 'Simulador', color: 'bg-gray-600', path: '/simulator' }
   ]
 
   if (showAIChat) {
@@ -161,6 +163,7 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
                 key={index}
                 variant="ghost"
                 className="h-20 flex-col space-y-2 text-white hover:bg-white/10 border border-white/20"
+                onClick={() => navigate(item.path)}
               >
                 <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center`}>
                   <item.icon className="w-5 h-5 text-white" />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { router } from 'expo-router';
 import {
   View,
   Text,
@@ -98,7 +99,10 @@ export default function StudentDashboardScreen() {
           <View style={styles.classContainer}>
             <Text style={styles.classTime}>{nextClass}</Text>
             <Text style={styles.classLocation}>Local: Marina da Praia</Text>
-            <TouchableOpacity style={styles.classButton}>
+            <TouchableOpacity
+              style={styles.classButton}
+              onPress={() => router.push('/class-details')}
+            >
               <Text style={styles.classButtonText}>Ver Detalhes</Text>
             </TouchableOpacity>
           </View>
@@ -135,19 +139,31 @@ export default function StudentDashboardScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Ações Rápidas</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/schedule-class')}
+            >
               <Text style={styles.actionIcon}>📅</Text>
               <Text style={styles.actionText}>Agendar Aula</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/progress')}
+            >
               <Text style={styles.actionIcon}>📋</Text>
               <Text style={styles.actionText}>Meu Progresso</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/certifications')}
+            >
               <Text style={styles.actionIcon}>📜</Text>
               <Text style={styles.actionText}>Certificações</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/material')}
+            >
               <Text style={styles.actionIcon}>📚</Text>
               <Text style={styles.actionText}>Material</Text>
             </TouchableOpacity>

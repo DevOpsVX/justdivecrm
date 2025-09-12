@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -16,6 +17,7 @@ import WeatherWidget from './WeatherWidget'
 import AIChat from './AIChat'
 
 const StudentInterface = ({ user, weatherData, onLogout, aiService }) => {
+  const navigate = useNavigate()
   const [showAIChat, setShowAIChat] = useState(false)
   const [checklist, setChecklist] = useState([
     { id: 1, text: 'Verificar equipamento de mergulho', completed: true },
@@ -138,6 +140,7 @@ const StudentInterface = ({ user, weatherData, onLogout, aiService }) => {
                   <Button
                     size="sm"
                     className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => navigate(`/classes/${class_.id}`)}
                   >
                     Detalhes
                   </Button>
@@ -229,30 +232,34 @@ const StudentInterface = ({ user, weatherData, onLogout, aiService }) => {
             <Button
               variant="ghost"
               className="h-20 flex-col space-y-2 text-white hover:bg-white/10 border border-white/20"
+              onClick={() => navigate('/logbook')}
             >
               <BookOpen className="w-6 h-6" />
               <span className="text-sm">Logbook</span>
             </Button>
-            
+
             <Button
               variant="ghost"
               className="h-20 flex-col space-y-2 text-white hover:bg-white/10 border border-white/20"
+              onClick={() => navigate('/schedule')}
             >
               <Calendar className="w-6 h-6" />
               <span className="text-sm">Agendar</span>
             </Button>
-            
+
             <Button
               variant="ghost"
               className="h-20 flex-col space-y-2 text-white hover:bg-white/10 border border-white/20"
+              onClick={() => navigate('/locations')}
             >
               <MapPin className="w-6 h-6" />
               <span className="text-sm">Locais</span>
             </Button>
-            
+
             <Button
               variant="ghost"
               className="h-20 flex-col space-y-2 text-white hover:bg-white/10 border border-white/20"
+              onClick={() => navigate('/support')}
             >
               <MessageSquare className="w-6 h-6" />
               <span className="text-sm">Suporte</span>
