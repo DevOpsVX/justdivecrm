@@ -5,14 +5,15 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  AsyncStorage,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import AISupport from '@/components/AISupport';
+import { loginService } from '@/services/loginService';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -20,18 +21,26 @@ export default function LoginScreen() {
   const [userType, setUserType] = useState<'admin' | 'student'>('student');
   const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
     }
 
-    // Mock authentication
-    if (userType === 'admin' && email === 'admin@justdive.com' && password === 'admin') {
-      router.push('/admin-dashboard');
-    } else if (userType === 'student' && email === 'student@justdive.com' && password === 'student') {
-      router.push('/student-dashboard');
-    } else {
+    try {
+      const { token, profile } = await loginService(email, password, userType);
+      if (Platform.OS === 'web') {
+        localStorage.setItem('sessionToken', token);
+      } else {
+        await AsyncStorage.setItem('sessionToken', token);
+      }
+
+      if (profile === 'admin') {
+        router.push('/admin-dashboard');
+      } else {
+        router.push('/student-dashboard');
+      }
+    } catch {
       Alert.alert('Erro', 'Credenciais inválidas');
     }
   };
