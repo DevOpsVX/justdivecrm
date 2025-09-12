@@ -37,21 +37,14 @@ export default function AISupport({ visible = true }: AISupportProps) {
   const [isTyping, setIsTyping] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
 
   // Pulse animation for the support button
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ])
     );
     pulse.start();
@@ -64,8 +57,6 @@ export default function AISupport({ visible = true }: AISupportProps) {
     }
   }, [messages, isOpen]);
 
-  const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
-
   const sendMessage = async () => {
     if (!inputText.trim()) return;
 
@@ -77,7 +68,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const messageText = inputText.trim();
+    const question = inputText.trim();
     setInputText('');
     setIsTyping(true);
 
@@ -85,60 +76,44 @@ export default function AISupport({ visible = true }: AISupportProps) {
       const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'És o assistente virtual da JUSTDIVE Academy.' },
-            { role: 'user', content: messageText }
-          ]
-        })
+        body: JSON.stringify({ message: question }),
       });
 
       if (!response.ok) {
-        throw new Error('Erro na resposta da API');
+        throw new Error('Network response was not ok');
       }
 
       const data = await response.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Desculpe, não consegui gerar uma resposta.',
+        text: data.response || 'Sem resposta da IA.',
         isUser: false,
         timestamp: new Date(),
       };
 
       setMessages(prev => [...prev, aiResponse]);
     } catch (error) {
-      console.error(error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Ocorreu um erro de rede. Tente novamente mais tarde.',
+        text: 'Erro ao conectar ao servidor. Tente novamente.',
         isUser: false,
         timestamp: new Date(),
       };
-
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsTyping(false);
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('pt-PT', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 
   if (!visible) return null;
 
   return (
     <>
       {/* Floating Support Button */}
-      <Animated.View 
-        style={[
-          styles.floatingButton,
-          { transform: [{ scale: pulseAnim }] }
-        ]}
-      >
+      <Animated.View style={[styles.floatingButton, { transform: [{ scale: pulseAnim }] }]}>
         <TouchableOpacity
           style={styles.supportButton}
           onPress={() => setIsOpen(true)}
@@ -156,21 +131,18 @@ export default function AISupport({ visible = true }: AISupportProps) {
         presentationStyle="pageSheet"
         onRequestClose={() => setIsOpen(false)}
       >
-        <KeyboardAvoidingView 
-          style={styles.modalContainer} 
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>🤖 IA Assistant</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsOpen(false)}
-            >
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsOpen(false)}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             ref={scrollViewRef}
             style={styles.messagesContainer}
             showsVerticalScrollIndicator={false}
@@ -183,16 +155,20 @@ export default function AISupport({ visible = true }: AISupportProps) {
                   message.isUser ? styles.userMessage : styles.aiMessage,
                 ]}
               >
-                <Text style={[
-                  styles.messageText,
-                  message.isUser ? styles.userMessageText : styles.aiMessageText,
-                ]}>
+                <Text
+                  style={[
+                    styles.messageText,
+                    message.isUser ? styles.userMessageText : styles.aiMessageText,
+                  ]}
+                >
                   {message.text}
                 </Text>
-                <Text style={[
-                  styles.messageTime,
-                  message.isUser ? styles.userMessageTime : styles.aiMessageTime,
-                ]}>
+                <Text
+                  style={[
+                    styles.messageTime,
+                    message.isUser ? styles.userMessageTime : styles.aiMessageTime,
+                  ]}
+                >
                   {formatTime(message.timestamp)}
                 </Text>
               </View>
@@ -200,7 +176,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
 
             {isTyping && (
               <View style={[styles.messageContainer, styles.aiMessage]}>
-                <Text style={styles.typingText}>IA está a escrever...</Text>
+                <Text style={styles.typingText}>Digitando...</Text>
               </View>
             )}
           </ScrollView>
@@ -230,12 +206,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
 }
 
 const styles = StyleSheet.create({
-  floatingButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    zIndex: 1000,
-  },
+  floatingButton: { position: 'absolute', bottom: 30, left: 20, zIndex: 1000 },
   supportButton: {
     backgroundColor: '#0EA5E9',
     borderRadius: 25,
@@ -249,19 +220,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  supportIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  supportText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  supportIcon: { fontSize: 20, marginRight: 8 },
+  supportText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  modalContainer: { flex: 1, backgroundColor: '#F8FAFC' },
   modalHeader: {
     backgroundColor: '#0EA5E9',
     paddingTop: 50,
@@ -271,11 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+  modalTitle: { fontSize: 24, fontWeight: 'bold', color: 'white' },
   closeButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
@@ -284,19 +241,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  messagesContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  messageContainer: {
-    marginBottom: 16,
-    maxWidth: '80%',
-  },
+  closeButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  messagesContainer: { flex: 1, padding: 16 },
+  messageContainer: { marginBottom: 16, maxWidth: '80%' },
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#0EA5E9',
@@ -316,32 +263,13 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  userMessageText: {
-    color: 'white',
-  },
-  aiMessageText: {
-    color: '#1F2937',
-  },
-  messageTime: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  userMessageTime: {
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'right',
-  },
-  aiMessageTime: {
-    color: '#9CA3AF',
-  },
-  typingText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
+  messageText: { fontSize: 16, lineHeight: 22 },
+  userMessageText: { color: 'white' },
+  aiMessageText: { color: '#1F2937' },
+  messageTime: { fontSize: 12, marginTop: 4 },
+  userMessageTime: { color: 'rgba(255,255,255,0.7)', textAlign: 'right' },
+  aiMessageTime: { color: '#9CA3AF' },
+  typingText: { fontSize: 16, color: '#9CA3AF', fontStyle: 'italic' },
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
@@ -362,19 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1F2937',
   },
-  sendButton: {
-    backgroundColor: '#0EA5E9',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#9CA3AF',
-  },
-  sendButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  sendButton: { backgroundColor: '#0EA5E9', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 12 },
+  sendButtonDisabled: { backgroundColor: '#9CA3AF' },
+  sendButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
-
