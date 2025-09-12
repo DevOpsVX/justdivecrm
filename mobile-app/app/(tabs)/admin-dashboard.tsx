@@ -10,6 +10,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -234,32 +235,50 @@ export default function AdminDashboardScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Ações Administrativas</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/students')}
+            >
               <Text style={styles.actionIcon}>👥</Text>
               <Text style={styles.actionText}>Gerir Estudantes</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/classes')}
+            >
               <Text style={styles.actionIcon}>📅</Text>
               <Text style={styles.actionText}>Gerir Aulas</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/certifications')}
+            >
               <Text style={styles.actionIcon}>📜</Text>
               <Text style={styles.actionText}>Certificações</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/reports')}
+            >
               <Text style={styles.actionIcon}>📊</Text>
               <Text style={styles.actionText}>Relatórios</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/finance')}
+            >
               <Text style={styles.actionIcon}>💰</Text>
               <Text style={styles.actionText}>Financeiro</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.actionButton}>
+
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/admin/notifications')}
+            >
               <Text style={styles.actionIcon}>📲</Text>
               <Text style={styles.actionText}>Notificações</Text>
             </TouchableOpacity>

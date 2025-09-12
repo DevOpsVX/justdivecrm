@@ -9,6 +9,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -135,19 +136,31 @@ export default function StudentDashboardScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Ações Rápidas</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/student/schedule')}
+            >
               <Text style={styles.actionIcon}>📅</Text>
               <Text style={styles.actionText}>Agendar Aula</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/student/progress')}
+            >
               <Text style={styles.actionIcon}>📋</Text>
               <Text style={styles.actionText}>Meu Progresso</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/student/certifications')}
+            >
               <Text style={styles.actionIcon}>📜</Text>
               <Text style={styles.actionText}>Certificações</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push('/student/material')}
+            >
               <Text style={styles.actionIcon}>📚</Text>
               <Text style={styles.actionText}>Material</Text>
             </TouchableOpacity>
