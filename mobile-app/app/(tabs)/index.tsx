@@ -42,7 +42,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LinearGradient
-        colors={['#0EA5E9', '#0284C7', '#0369A1']}
+        colors={['#000000', '#000033', '#000066']}
         style={styles.gradient}
       >
         <View style={styles.content}>
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'transparent', // Fundo transparente para a logo
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,

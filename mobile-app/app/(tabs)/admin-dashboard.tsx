@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Dimensions,
+  ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -88,7 +89,7 @@ export default function AdminDashboardScreen() {
     >
       {/* Header */}
       <LinearGradient
-        colors={['#0EA5E9', '#0284C7']}
+        colors={["#000000", "#000033", "#000066"]}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -100,15 +101,27 @@ export default function AdminDashboardScreen() {
 
       <View style={styles.content}>
         {/* Install App Banner */}
-        <View style={styles.installBanner}>
+        <ImageBackground
+          source={require("../../assets/images/wave-banner.png")} // Placeholder, will add image later
+          style={styles.installBanner}
+          imageStyle={{ borderRadius: 16, opacity: 0.3 }}
+        >
           <Text style={styles.bannerTitle}>📱 Instale o App Mobile</Text>
           <Text style={styles.bannerText}>
             Tenha acesso completo às funcionalidades nativas, widget meteorológico e notificações push no seu dispositivo Android
           </Text>
-          <TouchableOpacity style={styles.installButton}>
-            <Text style={styles.installButtonText}>Baixar APK</Text>
+          <TouchableOpacity 
+            style={styles.installButton}
+            onPress={() => {
+              // Simular download direto do APK
+              alert('Iniciando download do JUSTDIVE.apk...');
+              // Em produção, seria um link direto para o APK
+              // window.open('/downloads/justdive.apk', '_blank');
+            }}
+          >
+            <Text style={styles.installButtonText}>📱 Baixar APK</Text>
           </TouchableOpacity>
-        </View>
+        </ImageBackground>
 
         {/* Admin Stats */}
         <View style={styles.statsContainer}>
@@ -279,7 +292,7 @@ export default function AdminDashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#000000',
   },
   header: {
     paddingTop: 60,
@@ -309,34 +322,35 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   installBanner: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#F59E0B',
+    borderColor: '#00FFFF', // Azul neon
+    overflow: 'hidden', // Para a imagem de fundo
   },
   bannerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#92400E',
+    color: '#00FFFF', // Azul neon
     marginBottom: 8,
   },
   bannerText: {
     fontSize: 14,
-    color: '#92400E',
+    color: '#00FFFF', // Azul neon
     marginBottom: 16,
     lineHeight: 20,
   },
   installButton: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#000066', // Azul escuro para o botão
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
   installButtonText: {
-    color: 'white',
+    color: '#00FFFF', // Azul neon para o texto do botão
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -348,48 +362,52 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: (width - 60) / 2,
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#00FFFF', // Azul neon
+    shadowColor: '#00FFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0EA5E9',
+    color: '#00FFFF', // Azul neon
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A0AEC0',
     textAlign: 'center',
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#00FFFF', // Azul neon
+    shadowColor: '#00FFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 5,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: 'white',
     marginBottom: 16,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#A0AEC0',
     marginBottom: 16,
   },
   simulatorContainer: {
@@ -432,11 +450,11 @@ const styles = StyleSheet.create({
   weatherStatusText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: 'white',
   },
   lastUpdate: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#A0AEC0',
   },
   weatherMetrics: {
     flexDirection: 'row',
@@ -452,12 +470,12 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#0EA5E9',
+    color: '#00FFFF', // Azul neon
     marginBottom: 2,
   },
   metricLabel: {
     fontSize: 10,
-    color: '#6B7280',
+    color: '#A0AEC0',
     textAlign: 'center',
   },
   actionsContainer: {
@@ -467,7 +485,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     width: (width - 80) / 3,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -480,7 +498,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#374151',
+    color: 'white',
     textAlign: 'center',
   },
   activityContainer: {
@@ -496,12 +514,12 @@ const styles = StyleSheet.create({
   activityTime: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#0EA5E9',
+    color: '#00FFFF', // Azul neon
     width: 60,
   },
   activityText: {
     fontSize: 14,
-    color: '#1F2937',
+    color: 'white',
     flex: 1,
     marginLeft: 12,
   },
