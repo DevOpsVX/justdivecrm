@@ -1,77 +1,52 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Cloud, 
-  Thermometer, 
-  Waves, 
-  Wind, 
-  Eye, 
+import {
+  Cloud,
+  Thermometer,
+  Waves,
+  Wind,
+  Eye,
   RefreshCw,
   CheckCircle,
   AlertTriangle,
   XCircle,
   Clock
 } from 'lucide-react'
+import { getCurrentWeather } from '../services/weatherApi'
 
-// Sistema de dados meteorológicos estáveis
-const STABLE_WEATHER_DATA = {
-  temperature: 22,
-  waveHeight: 1.2,
-  windSpeed: 15,
-  visibility: 8,
-  status: 'green',
-  recommendation: 'Condições excelentes para mergulho!',
-  hasClasses: true,
-  nextClass: 'Aula Open Water - 14:00',
-  lastUpdate: new Date().toISOString()
-}
-
-// Simulador de variações mínimas realistas
-const generateRealisticVariation = (baseValue, maxVariation = 0.1) => {
-  const variation = (Math.random() - 0.5) * 2 * maxVariation
-  return Math.round((baseValue * (1 + variation)) * 10) / 10
-}
-
-const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
+const WeatherWidget = ({ location = 'default', onRefresh, compact = false }) => {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
-  const [stableData, setStableData] = useState(STABLE_WEATHER_DATA)
 
-  // Atualizar dados apenas quando necessário (a cada 30 minutos)
+  const fetchWeather = useCallback(async () => {
+    try {
+      setError(null)
+      const result = await getCurrentWeather(location)
+      setData(result)
+    } catch (err) {
+      console.error(err)
+      setError('Não foi possível carregar o clima')
+    } finally {
+      setLoading(false)
+    }
+  }, [location])
+
   useEffect(() => {
-    const updateInterval = setInterval(() => {
-      // Pequenas variações realistas
-      const newData = {
-        ...STABLE_WEATHER_DATA,
-        temperature: generateRealisticVariation(STABLE_WEATHER_DATA.temperature, 0.05),
-        waveHeight: generateRealisticVariation(STABLE_WEATHER_DATA.waveHeight, 0.1),
-        windSpeed: Math.round(generateRealisticVariation(STABLE_WEATHER_DATA.windSpeed, 0.15)),
-        visibility: Math.round(generateRealisticVariation(STABLE_WEATHER_DATA.visibility, 0.1)),
-        lastUpdate: new Date().toISOString()
-      }
-      
-      // Determinar status baseado nas condições
-      if (newData.waveHeight > 2.5 || newData.windSpeed > 25) {
-        newData.status = 'red'
-        newData.recommendation = 'Condições perigosas - mergulho não recomendado!'
-      } else if (newData.waveHeight > 1.8 || newData.windSpeed > 20) {
-        newData.status = 'yellow'
-        newData.recommendation = 'Condições moderadas - cuidado redobrado necessário.'
-      } else {
-        newData.status = 'green'
-        newData.recommendation = 'Condições excelentes para mergulho!'
-      }
-      
-      setStableData(newData)
-      setLastUpdate(new Date())
-    }, 30 * 60 * 1000) // 30 minutos
+    fetchWeather()
+  }, [fetchWeather])
 
-    return () => clearInterval(updateInterval)
-  }, [])
-
-  // Usar dados estáveis em vez dos dados externos instáveis
-  const currentData = stableData
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    setLoading(true)
+    await fetchWeather()
+    if (onRefresh) {
+      await onRefresh()
+    }
+    setIsRefreshing(false)
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -100,28 +75,28 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
     }
   }
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    
-    // Simular atualização com pequenas variações
-    const refreshedData = {
-      ...currentData,
-      temperature: generateRealisticVariation(currentData.temperature, 0.02),
-      waveHeight: generateRealisticVariation(currentData.waveHeight, 0.05),
-      windSpeed: Math.round(generateRealisticVariation(currentData.windSpeed, 0.08)),
-      visibility: Math.round(generateRealisticVariation(currentData.visibility, 0.05)),
-      lastUpdate: new Date().toISOString()
-    }
-    
-    setStableData(refreshedData)
-    setLastUpdate(new Date())
-    
-    if (onRefresh) {
-      await onRefresh()
-    }
-    
-    setTimeout(() => setIsRefreshing(false), 1000)
+  if (loading) {
+    return (
+      <Card className="weather-widget-container border-white/20">
+        <CardContent className="p-4">
+          <div className="text-center text-white">Carregando clima...</div>
+        </CardContent>
+      </Card>
+    )
   }
+
+  if (error || !data) {
+    return (
+      <Card className="weather-widget-container border-white/20">
+        <CardContent className="p-4 flex flex-col items-center space-y-2">
+          <div className="text-red-400 text-center">{error || 'Erro ao carregar clima'}</div>
+          <Button onClick={handleRefresh} className="bg-blue-600 text-white">Tentar novamente</Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const currentData = data
 
   if (compact) {
     return (
@@ -139,7 +114,6 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
               </span>
             </div>
           </div>
-          
           <div className="text-center">
             <div className="text-2xl font-bold text-white mb-1">
               {currentData.temperature}°C
@@ -158,106 +132,59 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-white flex items-center space-x-2">
-            <Cloud className="w-6 h-6" />
-            <span>Condições de Mergulho</span>
+            <Cloud className="w-5 h-5" />
+            <span>Condições do Tempo</span>
           </CardTitle>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="text-white hover:bg-white/10"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </Button>
-            
-            <div className={`px-3 py-1 rounded-full ${getStatusColor(currentData.status)} flex items-center space-x-2`}>
-              {getStatusIcon(currentData.status)}
-              <span className="text-white font-bold">
-                {getStatusText(currentData.status)}
-              </span>
-            </div>
-          </div>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            className="border-white/20 text-white hover:bg-white/10"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
         </div>
       </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Recomendação */}
-        <div className="text-center">
-          <p className="text-blue-200 italic">
-            {currentData.recommendation}
-          </p>
-        </div>
-
-        {/* Dados meteorológicos */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center space-y-2">
-            <Thermometer className="w-6 h-6 text-white mx-auto" />
-            <div className="text-xl font-bold text-white">
-              {currentData.temperature}°C
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 rounded-lg border border-white/10">
+            <div className="flex items-center space-x-2">
+              {getStatusIcon(currentData.status)}
+              <span className="text-white font-medium">{getStatusText(currentData.status)}</span>
             </div>
-            <div className="text-xs text-blue-200">
-              Temperatura
+            <div className={`px-3 py-1 rounded-full ${getStatusColor(currentData.status)}`}>
+              <span className="text-white text-sm font-bold">{currentData.status.toUpperCase()}</span>
             </div>
           </div>
-          
-          <div className="text-center space-y-2">
-            <Waves className="w-6 h-6 text-white mx-auto" />
-            <div className="text-xl font-bold text-white">
-              {currentData.waveHeight}m
-            </div>
-            <div className="text-xs text-blue-200">
-              Altura das Ondas
-            </div>
-          </div>
-          
-          <div className="text-center space-y-2">
-            <Wind className="w-6 h-6 text-white mx-auto" />
-            <div className="text-xl font-bold text-white">
-              {currentData.windSpeed} km/h
-            </div>
-            <div className="text-xs text-blue-200">
-              Vento
-            </div>
-          </div>
-          
-          <div className="text-center space-y-2">
-            <Eye className="w-6 h-6 text-white mx-auto" />
-            <div className="text-xl font-bold text-white">
-              {currentData.visibility} km
-            </div>
-            <div className="text-xs text-blue-200">
-              Visibilidade
-            </div>
-          </div>
-        </div>
-
-        {/* Informações de aulas */}
-        {currentData.hasClasses && (
-          <div className="bg-white/10 rounded-lg p-3 border border-white/20">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2 text-white">
-              <Clock className="w-4 h-4" />
-              <span className="font-medium">Aulas Hoje:</span>
+              <Thermometer className="w-5 h-5" />
+              <span>{currentData.temperature}°C</span>
             </div>
-            <p className="text-blue-200 mt-1">
-              {currentData.nextClass || 'Consulte o cronograma'}
-            </p>
+            <div className="flex items-center space-x-2 text-white">
+              <Waves className="w-5 h-5" />
+              <span>{currentData.waveHeight}m</span>
+            </div>
+            <div className="flex items-center space-x-2 text-white">
+              <Wind className="w-5 h-5" />
+              <span>{currentData.windSpeed} km/h</span>
+            </div>
+            <div className="flex items-center space-x-2 text-white">
+              <Eye className="w-5 h-5" />
+              <span>{currentData.visibility} km</span>
+            </div>
           </div>
-        )}
-
-        {/* Rodapé */}
-        <div className="flex justify-between items-center text-xs text-blue-300 pt-2 border-t border-white/10">
-          <span>
-            Última atualização: {lastUpdate.toLocaleTimeString('pt-PT', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </span>
-          <span>
-            Dados: Stormglass API
-          </span>
+          {currentData.nextClass && (
+            <div className="p-3 bg-blue-500/20 rounded-lg border border-blue-400/20">
+              <p className="text-white text-sm flex items-center">
+                <Clock className="w-4 h-4 mr-2" />
+                Próxima aula: {currentData.nextClass}
+              </p>
+            </div>
+          )}
+          <p className="text-blue-200 text-sm">{currentData.recommendation}</p>
         </div>
       </CardContent>
     </Card>
@@ -265,4 +192,3 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
 }
 
 export default WeatherWidget
-

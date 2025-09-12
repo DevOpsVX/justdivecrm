@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getCurrentWeather } from '../../services/weatherApi';
 import {
   View,
   Text,
@@ -12,8 +13,40 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
+interface WeatherData {
+  temperature: number;
+  waveHeight: number;
+  windSpeed: number;
+  status: 'GREEN' | 'YELLOW' | 'RED';
+}
+
 export default function StudentDashboardScreen() {
-  const weatherStatus = 'GREEN'; // Mock data
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  const loadWeather = async () => {
+    try {
+      setWeatherError(null);
+      const data = await getCurrentWeather('sesimbra');
+      setWeatherData({
+        temperature: data.temperature,
+        waveHeight: data.waveHeight,
+        windSpeed: data.windSpeed,
+        status: (data.status || 'green').toUpperCase(),
+      });
+    } catch (err) {
+      console.error(err)
+      setWeatherError('Erro ao carregar clima');
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWeather();
+  }, []);
+
   const nextClass = '14:30 - Mergulho Avançado';
   
   const getStatusColor = (status: string) => {
@@ -72,26 +105,44 @@ export default function StudentDashboardScreen() {
         </ImageBackground>
 
         {/* Weather Status Card */}
+        {loadingWeather && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Estado Meteorológico</Text>
+            <Text style={styles.bannerText}>A carregar...</Text>
+          </View>
+        )}
+
+        {weatherError && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Estado Meteorológico</Text>
+            <Text style={{ color: '#EF4444', marginBottom: 8 }}>{weatherError}</Text>
+            <TouchableOpacity style={styles.installButton} onPress={loadWeather}>
+              <Text style={styles.installButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {weatherData && (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico</Text>
           <View style={styles.weatherContainer}>
-            <View 
+            <View
               style={[
-                styles.statusIndicator, 
-                { backgroundColor: getStatusColor(weatherStatus) }
-              ]} 
+                styles.statusIndicator,
+                { backgroundColor: getStatusColor(weatherData.status) }
+              ]}
             />
             <View style={styles.weatherInfo}>
               <Text style={styles.weatherStatus}>
-                {getStatusText(weatherStatus)}
+                {getStatusText(weatherData.status)}
               </Text>
               <Text style={styles.weatherDetails}>
-                🌡️ Temperatura: 22°C • 🌊 Ondas: 1.2m • 💨 Vento: 15km/h
+                🌡️ Temperatura: {weatherData.temperature}°C • 🌊 Ondas: {weatherData.waveHeight}m • 💨 Vento: {weatherData.windSpeed}km/h
               </Text>
             </View>
           </View>
         </View>
-
+        )}
         {/* Next Class Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Próxima Aula</Text>

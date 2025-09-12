@@ -10,6 +10,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getCurrentWeather } from '../../services/weatherApi';
 
 const { width } = Dimensions.get('window');
 
@@ -30,14 +31,9 @@ interface AdminStats {
 }
 
 export default function AdminDashboardScreen() {
-  const [weatherData, setWeatherData] = useState<WeatherData>({
-    temperature: 22,
-    waveHeight: 1.2,
-    windSpeed: 15,
-    visibility: 8,
-    status: 'GREEN',
-    lastUpdate: '15:10',
-  });
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalStudents: 156,
@@ -48,18 +44,34 @@ export default function AdminDashboardScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
 
+  const loadWeather = async () => {
+    try {
+      setWeatherError(null);
+      const data = await getCurrentWeather('sesimbra');
+      setWeatherData({
+        temperature: data.temperature,
+        waveHeight: data.waveHeight,
+        windSpeed: data.windSpeed,
+        visibility: data.visibility,
+        status: (data.status || 'green').toUpperCase(),
+        lastUpdate: new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }),
+      });
+    } catch (err) {
+      console.error(err)
+      setWeatherError('Erro ao carregar clima');
+    } finally {
+      setLoadingWeather(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWeather();
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setWeatherData(prev => ({
-        ...prev,
-        lastUpdate: new Date().toLocaleTimeString('pt-PT', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-      }));
-      setRefreshing(false);
-    }, 1000);
+    loadWeather();
   };
 
   const getStatusColor = (status: string) => {
@@ -146,6 +158,25 @@ export default function AdminDashboardScreen() {
           </View>
         </View>
 
+        {loadingWeather && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Estado Meteorológico</Text>
+            <Text style={styles.cardSubtitle}>A carregar...</Text>
+          </View>
+        )}
+
+        {weatherError && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Estado Meteorológico</Text>
+            <Text style={{ color: '#EF4444', marginBottom: 8 }}>{weatherError}</Text>
+            <TouchableOpacity style={styles.installButton} onPress={onRefresh}>
+              <Text style={styles.installButtonText}>Tentar novamente</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {weatherData && (
+        <>
         {/* Weather Simulator - Admin Only */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🌊 Simulador Meteorológico</Text>
@@ -229,6 +260,9 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
         </View>
+
+        </>
+        )}
 
         {/* Admin Actions */}
         <View style={styles.card}>
