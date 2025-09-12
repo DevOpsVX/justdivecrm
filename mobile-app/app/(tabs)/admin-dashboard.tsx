@@ -11,17 +11,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
 
 const { width } = Dimensions.get('window');
-
-interface WeatherData {
-  temperature: number;
-  waveHeight: number;
-  windSpeed: number;
-  visibility: number;
-  status: 'GREEN' | 'YELLOW' | 'RED';
-  lastUpdate: string;
-}
 
 interface AdminStats {
   totalStudents: number;
@@ -31,14 +23,8 @@ interface AdminStats {
 }
 
 export default function AdminDashboardScreen() {
-  const [weatherData, setWeatherData] = useState<WeatherData>({
-    temperature: 22,
-    waveHeight: 1.2,
-    windSpeed: 15,
-    visibility: 8,
-    status: 'GREEN',
-    lastUpdate: '15:10',
-  });
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
 
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalStudents: 156,
@@ -49,19 +35,34 @@ export default function AdminDashboardScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setWeatherData(prev => ({
-        ...prev,
-        lastUpdate: new Date().toLocaleTimeString('pt-PT', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+  const loadWeather = async () => {
+    try {
+      const data = await fetchCurrentWeather('lagos');
+      setWeatherData({
+        ...data,
+        lastUpdate: new Date().toLocaleTimeString('pt-PT', {
+          hour: '2-digit',
+          minute: '2-digit',
         }),
-      }));
-      setRefreshing(false);
-    }, 1000);
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingWeather(false);
+    }
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadWeather();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadWeather();
+    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,17 +83,12 @@ export default function AdminDashboardScreen() {
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       {/* Header */}
-      <LinearGradient
-        colors={["#000000", "#000033", "#000066"]}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#000000', '#000033', '#000066']} style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>Painel do</Text>
           <Text style={styles.titleText}>Administrador</Text>
@@ -103,7 +99,7 @@ export default function AdminDashboardScreen() {
       <View style={styles.content}>
         {/* Install App Banner */}
         <ImageBackground
-          source={require("../../assets/images/wave-banner.png")} // Placeholder, will add image later
+          source={require('../../assets/images/wave-banner.png')}
           style={styles.installBanner}
           imageStyle={{ borderRadius: 16, opacity: 0.3 }}
         >
@@ -111,13 +107,10 @@ export default function AdminDashboardScreen() {
           <Text style={styles.bannerText}>
             Tenha acesso completo às funcionalidades nativas, widget meteorológico e notificações push no seu dispositivo Android
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.installButton}
             onPress={() => {
-              // Simular download direto do APK
               alert('Iniciando download do JUSTDIVE.apk...');
-              // Em produção, seria um link direto para o APK
-              // window.open('/downloads/justdive.apk', '_blank');
             }}
           >
             <Text style={styles.installButtonText}>📱 Baixar APK</Text>
@@ -130,17 +123,17 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statNumber}>{adminStats.totalStudents}</Text>
             <Text style={styles.statLabel}>Estudantes</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{adminStats.activeClasses}</Text>
             <Text style={styles.statLabel}>Aulas Ativas</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{adminStats.pendingCertifications}</Text>
             <Text style={styles.statLabel}>Certificações</Text>
           </View>
-          
+
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>€{adminStats.monthlyRevenue}</Text>
             <Text style={styles.statLabel}>Receita Mensal</Text>
@@ -151,27 +144,27 @@ export default function AdminDashboardScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🌊 Simulador Meteorológico</Text>
           <Text style={styles.cardSubtitle}>Controle o estado das condições para testes</Text>
-          
+
           <View style={styles.simulatorContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.simulatorButton, { backgroundColor: '#10B981' }]}
-              onPress={() => setWeatherData(prev => ({ ...prev, status: 'GREEN' }))}
+              onPress={() => setWeatherData(prev => ({ ...prev!, status: 'GREEN' }))}
             >
               <Text style={styles.simulatorButtonText}>🟢 Verde</Text>
               <Text style={styles.simulatorButtonSubtext}>Excelente</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.simulatorButton, { backgroundColor: '#F59E0B' }]}
-              onPress={() => setWeatherData(prev => ({ ...prev, status: 'YELLOW' }))}
+              onPress={() => setWeatherData(prev => ({ ...prev!, status: 'YELLOW' }))}
             >
               <Text style={styles.simulatorButtonText}>🟡 Amarelo</Text>
               <Text style={styles.simulatorButtonSubtext}>Moderado</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[styles.simulatorButton, { backgroundColor: '#EF4444' }]}
-              onPress={() => setWeatherData(prev => ({ ...prev, status: 'RED' }))}
+              onPress={() => setWeatherData(prev => ({ ...prev!, status: 'RED' }))}
             >
               <Text style={styles.simulatorButtonText}>🔴 Vermelho</Text>
               <Text style={styles.simulatorButtonSubtext}>Perigoso</Text>
@@ -182,103 +175,89 @@ export default function AdminDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico Atual</Text>
-          <View 
-            style={[
-              styles.weatherHeader, 
-              { backgroundColor: getStatusColor(weatherData.status) + '20' }
-            ]}
-          >
-            <View style={styles.weatherStatusContainer}>
-              <View 
+          {loadingWeather || !weatherData ? (
+            <Text style={{ color: 'white' }}>Carregando...</Text>
+          ) : (
+            <>
+              <View
                 style={[
-                  styles.statusIndicator, 
-                  { backgroundColor: getStatusColor(weatherData.status) }
-                ]} 
-              />
-              <Text style={styles.weatherStatusText}>
-                {getStatusText(weatherData.status)}
-              </Text>
-            </View>
-            <Text style={styles.lastUpdate}>
-              Atualizado: {weatherData.lastUpdate}
-            </Text>
-          </View>
+                  styles.weatherHeader,
+                  { backgroundColor: getStatusColor(weatherData.status) + '20' },
+                ]}
+              >
+                <View style={styles.weatherStatusContainer}>
+                  <View
+                    style={[
+                      styles.statusIndicator,
+                      { backgroundColor: getStatusColor(weatherData.status) },
+                    ]}
+                  />
+                  <Text style={styles.weatherStatusText}>
+                    {getStatusText(weatherData.status)}
+                  </Text>
+                </View>
+                <Text style={styles.lastUpdate}>Atualizado: {weatherData.lastUpdate}</Text>
+              </View>
 
-          <View style={styles.weatherMetrics}>
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>🌡️</Text>
-              <Text style={styles.metricValue}>{weatherData.temperature}°C</Text>
-              <Text style={styles.metricLabel}>Temperatura</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>🌊</Text>
-              <Text style={styles.metricValue}>{weatherData.waveHeight}m</Text>
-              <Text style={styles.metricLabel}>Ondas</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>💨</Text>
-              <Text style={styles.metricValue}>{weatherData.windSpeed}km/h</Text>
-              <Text style={styles.metricLabel}>Vento</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>👁️</Text>
-              <Text style={styles.metricValue}>{weatherData.visibility}km</Text>
-              <Text style={styles.metricLabel}>Visibilidade</Text>
-            </View>
-          </View>
+              <View style={styles.weatherMetrics}>
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>🌡️</Text>
+                  <Text style={styles.metricValue}>{weatherData.temperature}°C</Text>
+                  <Text style={styles.metricLabel}>Temperatura</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>🌊</Text>
+                  <Text style={styles.metricValue}>{weatherData.waveHeight}m</Text>
+                  <Text style={styles.metricLabel}>Ondas</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>💨</Text>
+                  <Text style={styles.metricValue}>{weatherData.windSpeed}km/h</Text>
+                  <Text style={styles.metricLabel}>Vento</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>👁️</Text>
+                  <Text style={styles.metricValue}>{weatherData.visibility}km</Text>
+                  <Text style={styles.metricLabel}>Visibilidade</Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Admin Actions */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Ações Administrativas</Text>
           <View style={styles.actionsContainer}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/students')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/students')}>
               <Text style={styles.actionIcon}>👥</Text>
               <Text style={styles.actionText}>Gerir Estudantes</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/classes')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/classes')}>
               <Text style={styles.actionIcon}>📅</Text>
               <Text style={styles.actionText}>Gerir Aulas</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/certifications')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/certifications')}>
               <Text style={styles.actionIcon}>📜</Text>
               <Text style={styles.actionText}>Certificações</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/reports')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/reports')}>
               <Text style={styles.actionIcon}>📊</Text>
               <Text style={styles.actionText}>Relatórios</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/finance')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/finance')}>
               <Text style={styles.actionIcon}>💰</Text>
               <Text style={styles.actionText}>Financeiro</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/admin/notifications')}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/admin/notifications')}>
               <Text style={styles.actionIcon}>📲</Text>
               <Text style={styles.actionText}>Notificações</Text>
             </TouchableOpacity>
@@ -295,7 +274,9 @@ export default function AdminDashboardScreen() {
             </View>
             <View style={styles.activityItem}>
               <Text style={styles.activityTime}>13:15</Text>
-              <Text style={styles.activityText}>Estado alterado para: {getStatusText(weatherData.status)}</Text>
+              <Text style={styles.activityText}>
+                Estado alterado para: {weatherData ? getStatusText(weatherData.status) : '--'}
+              </Text>
             </View>
             <View style={styles.activityItem}>
               <Text style={styles.activityTime}>12:00</Text>
@@ -309,70 +290,32 @@ export default function AdminDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 4,
-  },
-  titleText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  subtitleText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  content: {
-    padding: 20,
-    paddingTop: 10,
-  },
+  container: { flex: 1, backgroundColor: '#000000' },
+  header: { paddingTop: 60, paddingBottom: 30, paddingHorizontal: 20 },
+  headerContent: { alignItems: 'center' },
+  welcomeText: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
+  titleText: { fontSize: 28, fontWeight: 'bold', color: 'white', marginBottom: 4 },
+  subtitleText: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+  content: { padding: 20, paddingTop: 10 },
   installBanner: {
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#00FFFF', // Azul neon
-    overflow: 'hidden', // Para a imagem de fundo
+    borderColor: '#00FFFF',
+    overflow: 'hidden',
   },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 8,
-  },
-  bannerText: {
-    fontSize: 14,
-    color: '#00FFFF', // Azul neon
-    marginBottom: 16,
-    lineHeight: 20,
-  },
+  bannerTitle: { fontSize: 18, fontWeight: 'bold', color: '#00FFFF', marginBottom: 8 },
+  bannerText: { fontSize: 14, color: '#00FFFF', marginBottom: 16, lineHeight: 20 },
   installButton: {
-    backgroundColor: '#000066', // Azul escuro para o botão
+    backgroundColor: '#000066',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
-  installButtonText: {
-    color: '#00FFFF', // Azul neon para o texto do botão
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  installButtonText: { color: '#00FFFF', fontWeight: 'bold', fontSize: 16 },
   statsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -381,166 +324,56 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: (width - 60) / 2,
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#00FFFF', // Azul neon
+    borderColor: '#00FFFF',
     shadowColor: '#00FFFF',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
     elevation: 5,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#A0AEC0',
-    textAlign: 'center',
-  },
+  statNumber: { fontSize: 24, fontWeight: 'bold', color: '#00FFFF', marginBottom: 4 },
+  statLabel: { fontSize: 12, color: '#A0AEC0', textAlign: 'center' },
   card: {
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#00FFFF', // Azul neon
+    borderColor: '#00FFFF',
     shadowColor: '#00FFFF',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
     elevation: 5,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 16,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    marginBottom: 16,
-  },
-  simulatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  simulatorButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    minWidth: 80,
-  },
-  simulatorButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  simulatorButtonSubtext: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
-  },
-  weatherHeader: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  weatherStatusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statusIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  weatherStatusText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  lastUpdate: {
-    fontSize: 12,
-    color: '#A0AEC0',
-  },
-  weatherMetrics: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  weatherMetric: {
-    alignItems: 'center',
-  },
-  metricIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  metricValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 2,
-  },
-  metricLabel: {
-    fontSize: 10,
-    color: '#A0AEC0',
-    textAlign: 'center',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    width: (width - 80) / 3,
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  actionIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  actionText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'white',
-    textAlign: 'center',
-  },
-  activityContainer: {
-    gap: 12,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  activityTime: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    width: 60,
-  },
-  activityText: {
-    fontSize: 14,
-    color: 'white',
-    flex: 1,
-    marginLeft: 12,
-  },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: 'white', marginBottom: 16 },
+  cardSubtitle: { fontSize: 14, color: '#A0AEC0', marginBottom: 16 },
+  simulatorContainer: { flexDirection: 'row', justifyContent: 'space-around' },
+  simulatorButton: { paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12, alignItems: 'center', minWidth: 80 },
+  simulatorButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16, marginBottom: 4 },
+  simulatorButtonSubtext: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  weatherHeader: { borderRadius: 12, padding: 16, marginBottom: 16 },
+  weatherStatusContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  statusIndicator: { width: 20, height: 20, borderRadius: 10, marginRight: 12 },
+  weatherStatusText: { fontSize: 18, fontWeight: 'bold', color: 'white' },
+  lastUpdate: { fontSize: 12, color: '#A0AEC0' },
+  weatherMetrics: { flexDirection: 'row', justifyContent: 'space-around' },
+  weatherMetric: { alignItems: 'center' },
+  metricIcon: { fontSize: 20, marginBottom: 4 },
+  metricValue: { fontSize: 16, fontWeight: 'bold', color: '#00FFFF', marginBottom: 2 },
+  metricLabel: { fontSize: 10, color: '#A0AEC0', textAlign: 'center' },
+  actionsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  actionButton: { width: (width - 80) / 3, backgroundColor: 'rgba(0, 0, 51, 0.7)', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
+  actionIcon: { fontSize: 24, marginBottom: 8 },
+  actionText: { fontSize: 12, fontWeight: '600', color: 'white', textAlign: 'center' },
+  activityContainer: { gap: 12 },
+  activityItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  activityTime: { fontSize: 14, fontWeight: 'bold', color: '#00FFFF', width: 60 },
+  activityText: { fontSize: 14, color: 'white', flex: 1, marginLeft: 12 },
 });
-

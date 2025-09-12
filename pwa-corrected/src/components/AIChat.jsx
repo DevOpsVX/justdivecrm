@@ -15,8 +15,9 @@ import {
 const AIChat = ({ user, weatherData, aiService, onBack }) => {
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef(null)
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
   useEffect(() => {
     // Carregar histórico de conversas
@@ -47,7 +48,7 @@ const AIChat = ({ user, weatherData, aiService, onBack }) => {
   }
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return
+    if (!inputMessage.trim() || isTyping) return
 
     const userMessage = {
       id: Date.now().toString(),
@@ -57,33 +58,46 @@ const AIChat = ({ user, weatherData, aiService, onBack }) => {
     }
 
     setMessages(prev => [...prev, userMessage])
+    const question = inputMessage
     setInputMessage('')
-    setIsLoading(true)
+    setIsTyping(true)
 
     try {
-      const response = await aiService.processMessage(inputMessage, weatherData)
-      
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: question })
+      })
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+
+      const data = await response.json()
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: response,
+        content: data.response || 'Sem resposta da IA.',
         timestamp: new Date()
       }
 
       setMessages(prev => [...prev, aiMessage])
+      aiService?.addToHistory(question, aiMessage.content, weatherData)
     } catch (error) {
       console.error('Erro ao processar mensagem:', error)
-      
+
       const errorMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: 'Desculpe, ocorreu um erro ao processar a sua mensagem. Por favor, tente novamente.',
+        content: 'Erro ao contactar o servidor. Tente novamente.',
         timestamp: new Date()
       }
 
       setMessages(prev => [...prev, errorMessage])
     } finally {
-      setIsLoading(false)
+      setIsTyping(false)
     }
   }
 
@@ -185,7 +199,7 @@ const AIChat = ({ user, weatherData, aiService, onBack }) => {
             </div>
           ))}
           
-          {isLoading && (
+          {isTyping && (
             <div className="flex justify-start">
               <div className="flex items-start space-x-2">
                 <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
@@ -194,7 +208,7 @@ const AIChat = ({ user, weatherData, aiService, onBack }) => {
                 <div className="bg-white/10 border border-white/20 p-3 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
-                    <span className="text-white text-sm">A pensar...</span>
+                    <span className="text-white text-sm">Digitando...</span>
                   </div>
                 </div>
               </div>
@@ -233,11 +247,11 @@ const AIChat = ({ user, weatherData, aiService, onBack }) => {
               onKeyPress={handleKeyPress}
               placeholder="Digite sua pergunta sobre mergulho..."
               className="bg-white/10 border-white/20 text-white placeholder:text-blue-200 focus:border-white/40"
-              disabled={isLoading}
+              disabled={isTyping}
             />
             <Button
               onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
+              disabled={!inputMessage.trim() || isTyping}
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               <Send className="w-4 h-4" />

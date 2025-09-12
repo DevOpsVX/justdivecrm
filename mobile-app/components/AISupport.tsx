@@ -37,6 +37,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
   const [isTyping, setIsTyping] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
 
   // Pulse animation for the support button
   useEffect(() => {
@@ -64,33 +65,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
     }
   }, [messages, isOpen]);
 
-  const generateAIResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('condições') || lowerMessage.includes('tempo') || lowerMessage.includes('clima')) {
-      return '🌊 As condições atuais estão excelentes para mergulho! Temperatura da água: 22°C, ondas de 1.2m e boa visibilidade. O semáforo está verde, todas as atividades estão liberadas.';
-    }
-    
-    if (lowerMessage.includes('equipamento') || lowerMessage.includes('gear')) {
-      return '🤿 Para mergulho seguro, você precisará de: máscara, snorkel, barbatanas, roupa de mergulho, colete equilibrador (BCD), regulador e computador de mergulho.';
-    }
-    
-    if (lowerMessage.includes('certificação') || lowerMessage.includes('curso')) {
-      return '📜 Oferecemos certificações PADI: Open Water (iniciante), Advanced Open Water, Rescue Diver e Divemaster. Qual certificação te interessa?';
-    }
-    
-    if (lowerMessage.includes('aula') || lowerMessage.includes('horário')) {
-      return '📅 Sua próxima aula é às 14:30 - Mergulho Avançado na Marina da Praia. Não se esqueça do checklist de equipamentos!';
-    }
-    
-    if (lowerMessage.includes('segurança') || lowerMessage.includes('emergência')) {
-      return '🚨 Segurança é prioridade! Sempre mergulhe com companheiro, verifique equipamentos, respeite limites e faça paradas de segurança.';
-    }
-    
-    return '🤖 Obrigado pela sua pergunta! Posso ajudar com informações sobre condições meteorológicas, equipamentos, técnicas de mergulho, certificações e segurança. Pode ser mais específico?';
-  };
-
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!inputText.trim()) return;
 
     const userMessage: Message = {
@@ -101,21 +76,43 @@ export default function AISupport({ visible = true }: AISupportProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const question = inputText.trim();
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
-    setTimeout(() => {
+    try {
+      const response = await fetch(`${API_URL}/api/ai/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: question }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: generateAIResponse(inputText.trim()),
+        text: data.response || 'Sem resposta da IA.',
         isUser: false,
         timestamp: new Date(),
       };
-      
+
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Erro ao conectar ao servidor. Tente novamente.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -197,7 +194,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
 
             {isTyping && (
               <View style={[styles.messageContainer, styles.aiMessage]}>
-                <Text style={styles.typingText}>IA está a escrever...</Text>
+                <Text style={styles.typingText}>Digitando...</Text>
               </View>
             )}
           </ScrollView>

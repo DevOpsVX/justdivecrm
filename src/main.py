@@ -14,6 +14,8 @@ from src.models.user import db
 from src.routes.user import user_bp
 from src.routes.weather import weather_bp
 from src.routes.students import students_bp
+from src.routes.notifications import notifications_bp
+from src.routes.ai import ai_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
@@ -27,6 +29,8 @@ CORS(app, origins="*")
 app.register_blueprint(user_bp, url_prefix='/api')
 app.register_blueprint(weather_bp)
 app.register_blueprint(students_bp)
+app.register_blueprint(notifications_bp, url_prefix='/api')
+app.register_blueprint(ai_bp)
 
 # Configuração da base de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(os.path.dirname(__file__), 'database', 'app.db')}"
