@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -21,6 +22,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  usePushNotifications();
 
   useEffect(() => {
     async function register() {

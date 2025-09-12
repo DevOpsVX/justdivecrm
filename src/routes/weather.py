@@ -5,6 +5,7 @@ from flask import Blueprint, request, jsonify
 from src.services.weather_service import weather_service
 from src.services.supabase_service import supabase_service
 from src.services.openai_service import openai_service
+from src.services.notification_service import notification_service
 from datetime import datetime
 
 weather_bp = Blueprint('weather', __name__, url_prefix='/api/weather')
@@ -82,13 +83,18 @@ def force_weather_status():
             return jsonify({'error': 'Status deve ser GREEN, YELLOW ou RED'}), 400
         
         forced_data = weather_service.force_status(location, status, note)
-        
+
         # Salvar no histórico
         try:
             supabase_service.save_weather_data(forced_data)
         except Exception as e:
             print(f"Erro ao salvar no Supabase: {e}")
-        
+
+        notification_service.send_notification(
+            'Atualização meteorológica',
+            f"{location} agora {status}"
+        )
+
         return jsonify({
             'success': True,
             'data': forced_data
