@@ -25,6 +25,7 @@ interface AdminStats {
 export default function AdminDashboardScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalStudents: 156,
@@ -32,8 +33,6 @@ export default function AdminDashboardScreen() {
     pendingCertifications: 12,
     monthlyRevenue: 15420,
   });
-
-  const [refreshing, setRefreshing] = useState(false);
 
   const loadWeather = async () => {
     try {
@@ -123,17 +122,14 @@ export default function AdminDashboardScreen() {
             <Text style={styles.statNumber}>{adminStats.totalStudents}</Text>
             <Text style={styles.statLabel}>Estudantes</Text>
           </View>
-
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{adminStats.activeClasses}</Text>
             <Text style={styles.statLabel}>Aulas Ativas</Text>
           </View>
-
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{adminStats.pendingCertifications}</Text>
             <Text style={styles.statLabel}>Certificações</Text>
           </View>
-
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>€{adminStats.monthlyRevenue}</Text>
             <Text style={styles.statLabel}>Receita Mensal</Text>
@@ -316,12 +312,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   installButtonText: { color: '#00FFFF', fontWeight: 'bold', fontSize: 16 },
-  statsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
+  statsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 20 },
   statCard: {
     width: (width - 60) / 2,
     backgroundColor: 'rgba(0, 0, 51, 0.7)',
