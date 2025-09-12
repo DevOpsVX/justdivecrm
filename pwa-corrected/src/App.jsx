@@ -8,6 +8,15 @@ import WeatherWidget from './components/WeatherWidget'
 // import NotificationManager from './components/NotificationManager'
 import InstallPrompt from './components/InstallPrompt'
 import AIService from './services/AIService'
+import WeatherOperations from './components/WeatherOperations'
+import ReservationsPage from './components/ReservationsPage'
+import StudentsPage from './components/StudentsPage'
+import MessagesPage from './components/MessagesPage'
+import SimulatorPage from './components/SimulatorPage'
+import LogbookPage from './components/LogbookPage'
+import SchedulePage from './components/SchedulePage'
+import LocationsPage from './components/LocationsPage'
+import SupportPage from './components/SupportPage'
 import './App.css'
 
 function App() {
@@ -83,12 +92,12 @@ function App() {
         {/* <NotificationManager weatherData={weatherData} /> */}
         
         <Routes>
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
               user.type === 'admin' ? (
-                <Dashboard 
-                  user={user} 
+                <Dashboard
+                  user={user}
                   weatherData={weatherData}
                   onLogout={handleLogout}
                   aiService={aiService}
@@ -96,14 +105,64 @@ function App() {
               ) : (
                 <Navigate to="/student" replace />
               )
-            } 
+            }
           />
-          <Route 
-            path="/student" 
+          <Route
+            path="/dashboard/operations"
+            element={
+              user.type === 'admin' ? (
+                <WeatherOperations />
+              ) : (
+                <Navigate to="/student" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/reservations"
+            element={
+              user.type === 'admin' ? (
+                <ReservationsPage />
+              ) : (
+                <Navigate to="/student" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/students"
+            element={
+              user.type === 'admin' ? (
+                <StudentsPage />
+              ) : (
+                <Navigate to="/student" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/messages"
+            element={
+              user.type === 'admin' ? (
+                <MessagesPage />
+              ) : (
+                <Navigate to="/student" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/simulator"
+            element={
+              user.type === 'admin' ? (
+                <SimulatorPage />
+              ) : (
+                <Navigate to="/student" replace />
+              )
+            }
+          />
+          <Route
+            path="/student"
             element={
               user.type === 'student' ? (
-                <StudentInterface 
-                  user={user} 
+                <StudentInterface
+                  user={user}
                   weatherData={weatherData}
                   onLogout={handleLogout}
                   aiService={aiService}
@@ -111,12 +170,52 @@ function App() {
               ) : (
                 <Navigate to="/dashboard" replace />
               )
-            } 
+            }
           />
-          <Route 
-            path="/chat" 
+          <Route
+            path="/student/logbook"
             element={
-              <AIChat 
+              user.type === 'student' ? (
+                <LogbookPage />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/student/schedule"
+            element={
+              user.type === 'student' ? (
+                <SchedulePage />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/student/locations"
+            element={
+              user.type === 'student' ? (
+                <LocationsPage />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/student/support"
+            element={
+              user.type === 'student' ? (
+                <SupportPage />
+              ) : (
+                <Navigate to="/dashboard" replace />
+              )
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <AIChat
                 user={user}
                 weatherData={weatherData}
                 aiService={aiService}

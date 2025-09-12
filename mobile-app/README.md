@@ -48,3 +48,18 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Building with widgets
+
+To include the home screen weather widget in your app build:
+
+1. Ensure the `expo-widget` package is installed and configured in `app.json`.
+2. Run a prebuild and build the native project:
+
+   ```bash
+   npx expo prebuild
+   # then build with EAS or Gradle
+   eas build --platform android
+   # or
+   ./android/gradlew assembleRelease
+   ```
