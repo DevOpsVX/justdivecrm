@@ -1,8 +1,7 @@
-export async function getCurrentWeather(location) {
-  const baseUrl = import.meta.env.VITE_API_URL || ''
-  const response = await fetch(`${baseUrl}/api/weather/current/${location}`)
+export async function fetchCurrentWeather(local) {
+  const response = await fetch(`/api/weather/current/${encodeURIComponent(local)}`);
   if (!response.ok) {
-    throw new Error('Erro ao buscar dados meteorológicos')
+    throw new Error('Falha ao obter dados meteorológicos');
   }
-  return response.json()
+  return response.json();
 }
