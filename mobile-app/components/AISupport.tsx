@@ -43,16 +43,8 @@ export default function AISupport({ visible = true }: AISupportProps) {
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ])
     );
     pulse.start();
@@ -83,9 +75,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
     try {
       const response = await fetch(`${API_URL}/api/ai/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: question }),
       });
 
@@ -115,24 +105,15 @@ export default function AISupport({ visible = true }: AISupportProps) {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('pt-PT', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 
   if (!visible) return null;
 
   return (
     <>
       {/* Floating Support Button */}
-      <Animated.View 
-        style={[
-          styles.floatingButton,
-          { transform: [{ scale: pulseAnim }] }
-        ]}
-      >
+      <Animated.View style={[styles.floatingButton, { transform: [{ scale: pulseAnim }] }]}>
         <TouchableOpacity
           style={styles.supportButton}
           onPress={() => setIsOpen(true)}
@@ -150,21 +131,18 @@ export default function AISupport({ visible = true }: AISupportProps) {
         presentationStyle="pageSheet"
         onRequestClose={() => setIsOpen(false)}
       >
-        <KeyboardAvoidingView 
-          style={styles.modalContainer} 
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>🤖 IA Assistant</Text>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsOpen(false)}
-            >
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsOpen(false)}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             ref={scrollViewRef}
             style={styles.messagesContainer}
             showsVerticalScrollIndicator={false}
@@ -177,16 +155,20 @@ export default function AISupport({ visible = true }: AISupportProps) {
                   message.isUser ? styles.userMessage : styles.aiMessage,
                 ]}
               >
-                <Text style={[
-                  styles.messageText,
-                  message.isUser ? styles.userMessageText : styles.aiMessageText,
-                ]}>
+                <Text
+                  style={[
+                    styles.messageText,
+                    message.isUser ? styles.userMessageText : styles.aiMessageText,
+                  ]}
+                >
                   {message.text}
                 </Text>
-                <Text style={[
-                  styles.messageTime,
-                  message.isUser ? styles.userMessageTime : styles.aiMessageTime,
-                ]}>
+                <Text
+                  style={[
+                    styles.messageTime,
+                    message.isUser ? styles.userMessageTime : styles.aiMessageTime,
+                  ]}
+                >
                   {formatTime(message.timestamp)}
                 </Text>
               </View>
@@ -224,12 +206,7 @@ export default function AISupport({ visible = true }: AISupportProps) {
 }
 
 const styles = StyleSheet.create({
-  floatingButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 20,
-    zIndex: 1000,
-  },
+  floatingButton: { position: 'absolute', bottom: 30, left: 20, zIndex: 1000 },
   supportButton: {
     backgroundColor: '#0EA5E9',
     borderRadius: 25,
@@ -243,19 +220,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  supportIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  supportText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  supportIcon: { fontSize: 20, marginRight: 8 },
+  supportText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  modalContainer: { flex: 1, backgroundColor: '#F8FAFC' },
   modalHeader: {
     backgroundColor: '#0EA5E9',
     paddingTop: 50,
@@ -265,11 +232,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+  modalTitle: { fontSize: 24, fontWeight: 'bold', color: 'white' },
   closeButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 20,
@@ -278,19 +241,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  messagesContainer: {
-    flex: 1,
-    padding: 16,
-  },
-  messageContainer: {
-    marginBottom: 16,
-    maxWidth: '80%',
-  },
+  closeButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  messagesContainer: { flex: 1, padding: 16 },
+  messageContainer: { marginBottom: 16, maxWidth: '80%' },
   userMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#0EA5E9',
@@ -310,32 +263,13 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  userMessageText: {
-    color: 'white',
-  },
-  aiMessageText: {
-    color: '#1F2937',
-  },
-  messageTime: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  userMessageTime: {
-    color: 'rgba(255,255,255,0.7)',
-    textAlign: 'right',
-  },
-  aiMessageTime: {
-    color: '#9CA3AF',
-  },
-  typingText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
+  messageText: { fontSize: 16, lineHeight: 22 },
+  userMessageText: { color: 'white' },
+  aiMessageText: { color: '#1F2937' },
+  messageTime: { fontSize: 12, marginTop: 4 },
+  userMessageTime: { color: 'rgba(255,255,255,0.7)', textAlign: 'right' },
+  aiMessageTime: { color: '#9CA3AF' },
+  typingText: { fontSize: 16, color: '#9CA3AF', fontStyle: 'italic' },
   inputContainer: {
     flexDirection: 'row',
     padding: 16,
@@ -356,19 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1F2937',
   },
-  sendButton: {
-    backgroundColor: '#0EA5E9',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#9CA3AF',
-  },
-  sendButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  sendButton: { backgroundColor: '#0EA5E9', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 12 },
+  sendButtonDisabled: { backgroundColor: '#9CA3AF' },
+  sendButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
-
