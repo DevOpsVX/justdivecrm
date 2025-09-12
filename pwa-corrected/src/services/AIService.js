@@ -1,8 +1,7 @@
 // Serviço de IA para aplicação web JUSTDIVE
 class AIService {
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || 'demo-key';
-    this.baseURL = 'https://api.openai.com/v1';
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     this.conversationHistory = this.loadConversationHistory();
   }
 
@@ -26,60 +25,19 @@ class AIService {
     }
   }
 
+
   // Processar mensagem com IA
   async processMessage(message, weatherContext = null) {
     try {
-      // Construir contexto da conversa
-      const conversationHistory = this.conversationHistory
-        .slice(-10) // Últimas 10 mensagens para contexto
-        .map(msg => `Usuário: ${msg.message}\nAssistente: ${msg.response}`)
-        .join('\n\n');
-
-      // Contexto específico da JUSTDIVE
-      const systemPrompt = `Você é o assistente virtual da JUSTDIVE Academy, uma academia de mergulho em Portugal. 
-      
-      Informações atuais:
-      - Condições meteorológicas: ${weatherContext ? `
-        Temperatura: ${weatherContext.temperature}°C
-        Altura das ondas: ${weatherContext.waveHeight}m
-        Vento: ${weatherContext.windSpeed} km/h
-        Visibilidade: ${weatherContext.visibility} km
-        Status: ${weatherContext.status === 'green' ? 'Excelente' : weatherContext.status === 'yellow' ? 'Moderado' : 'Perigoso'}
-        Há aulas hoje: ${weatherContext.hasClasses ? 'Sim' : 'Não'}
-        ${weatherContext.nextClass ? `Próxima aula: ${weatherContext.nextClass}` : ''}
-      ` : 'Não disponível'}
-      
-      Você deve:
-      1. Responder em português de Portugal
-      2. Ser especialista em mergulho e segurança aquática
-      3. Considerar as condições meteorológicas nas recomendações
-      4. Ser útil para alunos e instrutores
-      5. Manter o contexto da conversa anterior
-      6. Ser conciso mas informativo
-      
-      Histórico da conversa:
-      ${conversationHistory}`;
-
-      // Simular resposta da IA (para demonstração)
-      if (this.apiKey === 'demo-key') {
-        return this.generateDemoResponse(message, weatherContext);
-      }
-
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
+      const response = await fetch(`${this.baseURL}/api/ai/chat`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'gpt-4',
           messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: message }
-          ],
-          max_tokens: 500,
-          temperature: 0.7,
-        }),
+            { role: 'system', content: 'Você é o assistente virtual da JUSTDIVE Academy.' },
+          { role: 'user', content: message }
+          ]
+        })
       });
 
       if (!response.ok) {
@@ -87,23 +45,20 @@ class AIService {
       }
 
       const data = await response.json();
-      const aiResponse = data.choices[0]?.message?.content || 'Desculpe, não consegui processar a sua mensagem.';
+      const aiResponse = data.response || 'Desculpe, não consegui processar a sua mensagem.';
 
-      // Salvar no histórico
       this.addToHistory(message, aiResponse, weatherContext);
 
       return aiResponse;
     } catch (error) {
       console.error('Erro ao processar mensagem:', error);
-      
-      // Resposta de fallback
+
       const fallbackResponse = 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.';
       this.addToHistory(message, fallbackResponse, { error: error.message });
-      
+
       return fallbackResponse;
     }
   }
-
   // Gerar resposta de demonstração
   generateDemoResponse(message, weatherContext) {
     const lowerMessage = message.toLowerCase();

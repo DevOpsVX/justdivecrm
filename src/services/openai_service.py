@@ -206,6 +206,20 @@ class OpenAIService:
                 'analysis': 'Não foi possível analisar o progresso no momento. Tente novamente mais tarde.',
                 'error': str(e)
             }
+
+    def generate_chat_response(self, messages: List[Dict[str, str]]) -> str:
+        """Gera uma resposta de chat genérica usando OpenAI"""
+        try:
+            response = openai.ChatCompletion.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=200,
+                temperature=0.7
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Erro no chat OpenAI: {e}")
+            return "Desculpe, ocorreu um erro ao gerar a resposta."
     
     def _get_mock_analysis(self, weather_data: Dict) -> Dict:
         """
