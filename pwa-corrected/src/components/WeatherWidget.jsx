@@ -1,77 +1,46 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Cloud, 
-  Thermometer, 
-  Waves, 
-  Wind, 
-  Eye, 
+import {
+  Cloud,
+  Thermometer,
+  Waves,
+  Wind,
+  Eye,
   RefreshCw,
   CheckCircle,
   AlertTriangle,
   XCircle,
   Clock
 } from 'lucide-react'
+import { fetchCurrentWeather } from '@/services/weatherApi'
 
-// Sistema de dados meteorológicos estáveis
-const STABLE_WEATHER_DATA = {
-  temperature: 22,
-  waveHeight: 1.2,
-  windSpeed: 15,
-  visibility: 8,
-  status: 'green',
-  recommendation: 'Condições excelentes para mergulho!',
-  hasClasses: true,
-  nextClass: 'Aula Open Water - 14:00',
-  lastUpdate: new Date().toISOString()
-}
-
-// Simulador de variações mínimas realistas
-const generateRealisticVariation = (baseValue, maxVariation = 0.1) => {
-  const variation = (Math.random() - 0.5) * 2 * maxVariation
-  return Math.round((baseValue * (1 + variation)) * 10) / 10
-}
-
-const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
+const WeatherWidget = ({ location = 'lagos', compact = false }) => {
+  const [data, setData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
-  const [stableData, setStableData] = useState(STABLE_WEATHER_DATA)
+  const [lastUpdate, setLastUpdate] = useState(null)
 
-  // Atualizar dados apenas quando necessário (a cada 30 minutos)
-  useEffect(() => {
-    const updateInterval = setInterval(() => {
-      // Pequenas variações realistas
-      const newData = {
-        ...STABLE_WEATHER_DATA,
-        temperature: generateRealisticVariation(STABLE_WEATHER_DATA.temperature, 0.05),
-        waveHeight: generateRealisticVariation(STABLE_WEATHER_DATA.waveHeight, 0.1),
-        windSpeed: Math.round(generateRealisticVariation(STABLE_WEATHER_DATA.windSpeed, 0.15)),
-        visibility: Math.round(generateRealisticVariation(STABLE_WEATHER_DATA.visibility, 0.1)),
-        lastUpdate: new Date().toISOString()
-      }
-      
-      // Determinar status baseado nas condições
-      if (newData.waveHeight > 2.5 || newData.windSpeed > 25) {
-        newData.status = 'red'
-        newData.recommendation = 'Condições perigosas - mergulho não recomendado!'
-      } else if (newData.waveHeight > 1.8 || newData.windSpeed > 20) {
-        newData.status = 'yellow'
-        newData.recommendation = 'Condições moderadas - cuidado redobrado necessário.'
-      } else {
-        newData.status = 'green'
-        newData.recommendation = 'Condições excelentes para mergulho!'
-      }
-      
-      setStableData(newData)
+  const load = async () => {
+    try {
+      const result = await fetchCurrentWeather(location)
+      setData(result)
       setLastUpdate(new Date())
-    }, 30 * 60 * 1000) // 30 minutos
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
-    return () => clearInterval(updateInterval)
-  }, [])
+  useEffect(() => {
+    load()
+    const interval = setInterval(load, 15 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [location])
 
-  // Usar dados estáveis em vez dos dados externos instáveis
-  const currentData = stableData
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    await load()
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -100,28 +69,23 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
     }
   }
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true)
-    
-    // Simular atualização com pequenas variações
-    const refreshedData = {
-      ...currentData,
-      temperature: generateRealisticVariation(currentData.temperature, 0.02),
-      waveHeight: generateRealisticVariation(currentData.waveHeight, 0.05),
-      windSpeed: Math.round(generateRealisticVariation(currentData.windSpeed, 0.08)),
-      visibility: Math.round(generateRealisticVariation(currentData.visibility, 0.05)),
-      lastUpdate: new Date().toISOString()
-    }
-    
-    setStableData(refreshedData)
-    setLastUpdate(new Date())
-    
-    if (onRefresh) {
-      await onRefresh()
-    }
-    
-    setTimeout(() => setIsRefreshing(false), 1000)
+  if (!data) {
+    return (
+      <Card className="weather-widget-container border-white/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-white flex items-center space-x-2">
+            <Cloud className="w-6 h-6" />
+            <span>Condições de Mergulho</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-blue-200">Carregando dados meteorológicos...</p>
+        </CardContent>
+      </Card>
+    )
   }
+
+  const currentData = data
 
   if (compact) {
     return (
@@ -139,7 +103,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
               </span>
             </div>
           </div>
-          
+
           <div className="text-center">
             <div className="text-2xl font-bold text-white mb-1">
               {currentData.temperature}°C
@@ -161,7 +125,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
             <Cloud className="w-6 h-6" />
             <span>Condições de Mergulho</span>
           </CardTitle>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
@@ -172,7 +136,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
-            
+
             <div className={`px-3 py-1 rounded-full ${getStatusColor(currentData.status)} flex items-center space-x-2`}>
               {getStatusIcon(currentData.status)}
               <span className="text-white font-bold">
@@ -202,7 +166,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
               Temperatura
             </div>
           </div>
-          
+
           <div className="text-center space-y-2">
             <Waves className="w-6 h-6 text-white mx-auto" />
             <div className="text-xl font-bold text-white">
@@ -212,7 +176,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
               Altura das Ondas
             </div>
           </div>
-          
+
           <div className="text-center space-y-2">
             <Wind className="w-6 h-6 text-white mx-auto" />
             <div className="text-xl font-bold text-white">
@@ -222,7 +186,7 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
               Vento
             </div>
           </div>
-          
+
           <div className="text-center space-y-2">
             <Eye className="w-6 h-6 text-white mx-auto" />
             <div className="text-xl font-bold text-white">
@@ -250,9 +214,9 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
         {/* Rodapé */}
         <div className="flex justify-between items-center text-xs text-blue-300 pt-2 border-t border-white/10">
           <span>
-            Última atualização: {lastUpdate.toLocaleTimeString('pt-PT', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
+            Última atualização: {lastUpdate?.toLocaleTimeString('pt-PT', {
+              hour: '2-digit',
+              minute: '2-digit'
             })}
           </span>
           <span>
@@ -265,4 +229,3 @@ const WeatherWidget = ({ weatherData, onRefresh, compact = false }) => {
 }
 
 export default WeatherWidget
-
