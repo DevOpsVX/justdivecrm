@@ -39,6 +39,17 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-widget",
+        {
+          "widgets": [
+            {
+              "name": "weather",
+              "source": "./widgets/weather/index.tsx"
+            }
+          ]
+        }
       ]
     ],
     "experiments": {
