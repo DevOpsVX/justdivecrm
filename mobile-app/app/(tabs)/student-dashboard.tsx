@@ -1,5 +1,4 @@
-import React from 'react';
-import { router } from 'expo-router';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,13 +9,33 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
 
 const { width } = Dimensions.get('window');
 
 export default function StudentDashboardScreen() {
-  const weatherStatus = 'GREEN'; // Mock data
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
   const nextClass = '14:30 - Mergulho Avançado';
-  
+
+  const loadWeather = async () => {
+    try {
+      const data = await fetchCurrentWeather('lagos');
+      setWeatherData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWeather();
+    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'GREEN': return '#10B981';
@@ -37,10 +56,7 @@ export default function StudentDashboardScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <LinearGradient
-        colors={["#000000", "#000033", "#000066"]}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#000000', '#000033', '#000066']} style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.welcomeText}>Bem-vindo à</Text>
           <Text style={styles.titleText}>JUSTDIVE Academy</Text>
@@ -51,7 +67,7 @@ export default function StudentDashboardScreen() {
       <View style={styles.content}>
         {/* Install App Banner */}
         <ImageBackground
-          source={require("../../assets/images/wave-banner.png")} // Placeholder, will add image later
+          source={require('../../assets/images/wave-banner.png')}
           style={styles.installBanner}
           imageStyle={{ borderRadius: 16, opacity: 0.3 }}
         >
@@ -59,13 +75,10 @@ export default function StudentDashboardScreen() {
           <Text style={styles.bannerText}>
             Receba notificações push, widget meteorológico na tela inicial e funcionalidades nativas no seu Android
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.installButton}
             onPress={() => {
-              // Simular download direto do APK
               alert('Iniciando download do JUSTDIVE.apk...');
-              // Em produção, seria um link direto para o APK
-              // window.open('/downloads/justdive.apk', '_blank');
             }}
           >
             <Text style={styles.installButtonText}>📱 Baixar APK</Text>
@@ -75,22 +88,26 @@ export default function StudentDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico</Text>
-          <View style={styles.weatherContainer}>
-            <View 
-              style={[
-                styles.statusIndicator, 
-                { backgroundColor: getStatusColor(weatherStatus) }
-              ]} 
-            />
-            <View style={styles.weatherInfo}>
-              <Text style={styles.weatherStatus}>
-                {getStatusText(weatherStatus)}
-              </Text>
-              <Text style={styles.weatherDetails}>
-                🌡️ Temperatura: 22°C • 🌊 Ondas: 1.2m • 💨 Vento: 15km/h
-              </Text>
+          {loadingWeather || !weatherData ? (
+            <Text style={{ color: 'white' }}>Carregando...</Text>
+          ) : (
+            <View style={styles.weatherContainer}>
+              <View
+                style={[
+                  styles.statusIndicator,
+                  { backgroundColor: getStatusColor(weatherData.status) },
+                ]}
+              />
+              <View style={styles.weatherInfo}>
+                <Text style={styles.weatherStatus}>
+                  {getStatusText(weatherData.status)}
+                </Text>
+                <Text style={styles.weatherDetails}>
+                  🌡️ Temperatura: {weatherData.temperature}°C • 🌊 Ondas: {weatherData.waveHeight}m • 💨 Vento: {weatherData.windSpeed}km/h
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Next Class Card */}
@@ -141,28 +158,28 @@ export default function StudentDashboardScreen() {
           <View style={styles.actionsContainer}>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/schedule-class')}
+              onPress={() => router.push('/student/schedule')}
             >
               <Text style={styles.actionIcon}>📅</Text>
               <Text style={styles.actionText}>Agendar Aula</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/progress')}
+              onPress={() => router.push('/student/progress')}
             >
               <Text style={styles.actionIcon}>📋</Text>
               <Text style={styles.actionText}>Meu Progresso</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/certifications')}
+              onPress={() => router.push('/student/certifications')}
             >
               <Text style={styles.actionIcon}>📜</Text>
               <Text style={styles.actionText}>Certificações</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => router.push('/material')}
+              onPress={() => router.push('/student/material')}
             >
               <Text style={styles.actionIcon}>📚</Text>
               <Text style={styles.actionText}>Material</Text>
@@ -194,197 +211,73 @@ export default function StudentDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  header: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 20,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 4,
-  },
-  titleText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  subtitleText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  content: {
-    padding: 20,
-    paddingTop: 10,
-  },
+  container: { flex: 1, backgroundColor: '#000000' },
+  header: { paddingTop: 60, paddingBottom: 30, paddingHorizontal: 20 },
+  headerContent: { alignItems: 'center' },
+  welcomeText: { fontSize: 16, color: 'rgba(255,255,255,0.8)', marginBottom: 4 },
+  titleText: { fontSize: 28, fontWeight: 'bold', color: 'white', marginBottom: 4 },
+  subtitleText: { fontSize: 14, color: 'rgba(255,255,255,0.7)' },
+  content: { padding: 20, paddingTop: 10 },
   installBanner: {
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#00FFFF', // Azul neon
-    overflow: 'hidden', // Para a imagem de fundo
+    borderColor: '#00FFFF',
+    overflow: 'hidden',
   },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 8,
-  },
-  bannerText: {
-    fontSize: 14,
-    color: '#00FFFF', // Azul neon
-    marginBottom: 16,
-    lineHeight: 20,
-  },
+  bannerTitle: { fontSize: 18, fontWeight: 'bold', color: '#00FFFF', marginBottom: 8 },
+  bannerText: { fontSize: 14, color: '#00FFFF', marginBottom: 16, lineHeight: 20 },
   installButton: {
-    backgroundColor: '#000066', // Azul escuro para o botão
+    backgroundColor: '#000066',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
-  installButtonText: {
-    color: '#00FFFF', // Azul neon para o texto do botão
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  installButtonText: { color: '#00FFFF', fontWeight: 'bold', fontSize: 16 },
   card: {
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#00FFFF', // Azul neon
+    borderColor: '#00FFFF',
     shadowColor: '#00FFFF',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 5,
     elevation: 5,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 16,
-  },
-  weatherContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 12,
-  },
-  weatherInfo: {
-    flex: 1,
-  },
-  weatherStatus: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 4,
-  },
-  weatherDetails: {
-    fontSize: 14,
-    color: '#A0AEC0',
-  },
-  classContainer: {
-    alignItems: 'flex-start',
-  },
-  classTime: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 8,
-  },
-  classLocation: {
-    fontSize: 14,
-    color: '#A0AEC0',
-    marginBottom: 16,
-  },
-  classButton: {
-    backgroundColor: '#000066', // Azul escuro',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  classButtonText: {
-    color: '#00FFFF', // Azul neon
-    fontWeight: '600',
-  },
-  checklistContainer: {
-    gap: 12,
-  },
-  checklistItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  checkIcon: {
-    fontSize: 20,
-    marginRight: 12,
-    width: 24,
-  },
-  checkText: {
-    fontSize: 16,
-    color: 'white',
-    flex: 1,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: 'white', marginBottom: 16 },
+  weatherContainer: { flexDirection: 'row', alignItems: 'center' },
+  statusIndicator: { width: 20, height: 20, borderRadius: 10, marginRight: 12 },
+  weatherInfo: { flex: 1 },
+  weatherStatus: { fontSize: 16, fontWeight: '600', color: 'white', marginBottom: 4 },
+  weatherDetails: { fontSize: 14, color: '#A0AEC0' },
+  classContainer: { alignItems: 'flex-start' },
+  classTime: { fontSize: 18, fontWeight: 'bold', color: '#00FFFF', marginBottom: 8 },
+  classLocation: { fontSize: 14, color: '#A0AEC0', marginBottom: 16 },
+  classButton: { backgroundColor: '#000066', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
+  classButtonText: { color: '#00FFFF', fontWeight: '600' },
+  checklistContainer: { gap: 12 },
+  checklistItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  checkIcon: { fontSize: 20, marginRight: 12, width: 24 },
+  checkText: { fontSize: 16, color: 'white', flex: 1 },
+  actionsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   actionButton: {
     width: (width - 80) / 2,
-    backgroundColor: 'rgba(0, 0, 51, 0.7)', // Azul escuro transparente',
+    backgroundColor: 'rgba(0, 0, 51, 0.7)',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 12,
   },
-  actionIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'white',
-    textAlign: 'center',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#00FFFF', // Azul neon
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#A0AEC0',
-    textAlign: 'center',
-  },
+  actionIcon: { fontSize: 24, marginBottom: 8 },
+  actionText: { fontSize: 14, fontWeight: '600', color: 'white', textAlign: 'center' },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-around' },
+  statItem: { alignItems: 'center' },
+  statNumber: { fontSize: 24, fontWeight: 'bold', color: '#00FFFF', marginBottom: 4 },
+  statLabel: { fontSize: 12, color: '#A0AEC0', textAlign: 'center' },
 });
-
