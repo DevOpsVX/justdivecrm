@@ -2,17 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Users, 
-  Calendar, 
-  GraduationCap, 
-  MessageSquare,
-  Settings,
-  LogOut,
-  BarChart3,
-  TrendingUp,
-  Clock
-} from 'lucide-react'
+import { Users, Calendar, GraduationCap, MessageSquare, Settings, LogOut, BarChart3, TrendingUp, Clock } from 'lucide-react'
 import WeatherWidget from './WeatherWidget'
 import AIChat from './AIChat'
 
@@ -27,27 +17,12 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
   })
 
   const [recentNotifications] = useState([
-    {
-      id: 1,
-      type: 'success',
-      message: 'Nova reserva de João Silva para amanhã',
-      time: '10:30'
-    },
-    {
-      id: 2,
-      type: 'info',
-      message: 'Condições meteorológicas favoráveis',
-      time: '09:15'
-    }
+    { id: 1, type: 'success', message: 'Nova reserva de João Silva para amanhã', time: '10:30' },
+    { id: 2, type: 'info', message: 'Condições meteorológicas favoráveis', time: '09:15' }
   ])
 
   const menuItems = [
-    {
-      icon: BarChart3,
-      label: 'Operações Meteorológicas',
-      color: 'bg-blue-600',
-      route: '/dashboard/operations'
-    },
+    { icon: BarChart3, label: 'Operações Meteorológicas', color: 'bg-blue-600', route: '/dashboard/operations' },
     { icon: Calendar, label: 'Reservas', color: 'bg-green-600', route: '/dashboard/reservations' },
     { icon: Users, label: 'Alunos', color: 'bg-purple-600', route: '/dashboard/students' },
     { icon: MessageSquare, label: 'Mensagens', color: 'bg-orange-600', route: '/dashboard/messages' },
@@ -55,14 +30,7 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
   ]
 
   if (showAIChat) {
-    return (
-      <AIChat
-        user={user}
-        weatherData={weatherData}
-        aiService={aiService}
-        onBack={() => setShowAIChat(false)}
-      />
-    )
+    return <AIChat user={user} weatherData={weatherData} aiService={aiService} onBack={() => setShowAIChat(false)} />
   }
 
   return (
@@ -70,32 +38,18 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">
-            Bem-vindo, {user.name}
-          </h1>
+          <h1 className="text-2xl font-bold text-white">Bem-vindo, {user.name}</h1>
           <p className="text-blue-200">
-            {new Date().toLocaleDateString('pt-PT', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+            {new Date().toLocaleDateString('pt-PT', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
-        
+
         <div className="flex space-x-2">
-          <Button
-            onClick={() => setShowAIChat(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
+          <Button onClick={() => setShowAIChat(true)} className="bg-purple-600 hover:bg-purple-700 text-white">
             <MessageSquare className="w-4 h-4 mr-2" />
             IA Assistant
           </Button>
-          <Button
-            onClick={onLogout}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
-          >
+          <Button onClick={onLogout} variant="outline" className="border-white/20 text-white hover:bg-white/10">
             <LogOut className="w-4 h-4 mr-2" />
             Sair
           </Button>
@@ -191,14 +145,9 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
         <CardContent>
           <div className="space-y-3">
             {recentNotifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
-              >
+              <div key={notification.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-center space-x-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    notification.type === 'success' ? 'bg-green-400' : 'bg-blue-400'
-                  }`}></div>
+                  <div className={`w-2 h-2 rounded-full ${notification.type === 'success' ? 'bg-green-400' : 'bg-blue-400'}`} />
                   <span className="text-white text-sm">{notification.message}</span>
                 </div>
                 <span className="text-blue-300 text-xs">{notification.time}</span>
@@ -212,4 +161,3 @@ const Dashboard = ({ user, weatherData, onLogout, aiService }) => {
 }
 
 export default Dashboard
-

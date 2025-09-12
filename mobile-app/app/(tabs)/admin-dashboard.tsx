@@ -27,7 +27,7 @@ export default function AdminDashboardScreen() {
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const [adminStats, setAdminStats] = useState<AdminStats>({
+  const [adminStats] = useState<AdminStats>({
     totalStudents: 156,
     activeClasses: 8,
     pendingCertifications: 12,

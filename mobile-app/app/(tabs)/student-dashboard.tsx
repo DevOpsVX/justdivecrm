@@ -116,7 +116,10 @@ export default function StudentDashboardScreen() {
           <View style={styles.classContainer}>
             <Text style={styles.classTime}>{nextClass}</Text>
             <Text style={styles.classLocation}>Local: Marina da Praia</Text>
-            <TouchableOpacity style={styles.classButton}>
+            <TouchableOpacity
+              style={styles.classButton}
+              onPress={() => router.push('/class-details')}
+            >
               <Text style={styles.classButtonText}>Ver Detalhes</Text>
             </TouchableOpacity>
           </View>
