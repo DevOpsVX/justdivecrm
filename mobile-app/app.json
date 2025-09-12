@@ -41,7 +41,8 @@
           }
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "react-native-android-widget"
     ],
     "experiments": {
       "typedRoutes": true,

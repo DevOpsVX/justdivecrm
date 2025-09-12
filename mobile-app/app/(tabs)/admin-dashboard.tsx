@@ -10,17 +10,9 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
 
 const { width } = Dimensions.get('window');
-
-interface WeatherData {
-  temperature: number;
-  waveHeight: number;
-  windSpeed: number;
-  visibility: number;
-  status: 'GREEN' | 'YELLOW' | 'RED';
-  lastUpdate: string;
-}
 
 interface AdminStats {
   totalStudents: number;
@@ -30,14 +22,8 @@ interface AdminStats {
 }
 
 export default function AdminDashboardScreen() {
-  const [weatherData, setWeatherData] = useState<WeatherData>({
-    temperature: 22,
-    waveHeight: 1.2,
-    windSpeed: 15,
-    visibility: 8,
-    status: 'GREEN',
-    lastUpdate: '15:10',
-  });
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
 
   const [adminStats, setAdminStats] = useState<AdminStats>({
     totalStudents: 156,
@@ -48,19 +34,34 @@ export default function AdminDashboardScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setWeatherData(prev => ({
-        ...prev,
-        lastUpdate: new Date().toLocaleTimeString('pt-PT', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+  const loadWeather = async () => {
+    try {
+      const data = await fetchCurrentWeather('lagos');
+      setWeatherData({
+        ...data,
+        lastUpdate: new Date().toLocaleTimeString('pt-PT', {
+          hour: '2-digit',
+          minute: '2-digit',
         }),
-      }));
-      setRefreshing(false);
-    }, 1000);
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingWeather(false);
+    }
   };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadWeather();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadWeather();
+    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -181,53 +182,59 @@ export default function AdminDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico Atual</Text>
-          <View 
-            style={[
-              styles.weatherHeader, 
-              { backgroundColor: getStatusColor(weatherData.status) + '20' }
-            ]}
-          >
-            <View style={styles.weatherStatusContainer}>
-              <View 
+          {loadingWeather || !weatherData ? (
+            <Text style={{ color: 'white' }}>Carregando...</Text>
+          ) : (
+            <>
+              <View
                 style={[
-                  styles.statusIndicator, 
-                  { backgroundColor: getStatusColor(weatherData.status) }
-                ]} 
-              />
-              <Text style={styles.weatherStatusText}>
-                {getStatusText(weatherData.status)}
-              </Text>
-            </View>
-            <Text style={styles.lastUpdate}>
-              Atualizado: {weatherData.lastUpdate}
-            </Text>
-          </View>
+                  styles.weatherHeader,
+                  { backgroundColor: getStatusColor(weatherData.status) + '20' }
+                ]}
+              >
+                <View style={styles.weatherStatusContainer}>
+                  <View
+                    style={[
+                      styles.statusIndicator,
+                      { backgroundColor: getStatusColor(weatherData.status) }
+                    ]}
+                  />
+                  <Text style={styles.weatherStatusText}>
+                    {getStatusText(weatherData.status)}
+                  </Text>
+                </View>
+                <Text style={styles.lastUpdate}>
+                  Atualizado: {weatherData.lastUpdate}
+                </Text>
+              </View>
 
-          <View style={styles.weatherMetrics}>
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>🌡️</Text>
-              <Text style={styles.metricValue}>{weatherData.temperature}°C</Text>
-              <Text style={styles.metricLabel}>Temperatura</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>🌊</Text>
-              <Text style={styles.metricValue}>{weatherData.waveHeight}m</Text>
-              <Text style={styles.metricLabel}>Ondas</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>💨</Text>
-              <Text style={styles.metricValue}>{weatherData.windSpeed}km/h</Text>
-              <Text style={styles.metricLabel}>Vento</Text>
-            </View>
-            
-            <View style={styles.weatherMetric}>
-              <Text style={styles.metricIcon}>👁️</Text>
-              <Text style={styles.metricValue}>{weatherData.visibility}km</Text>
-              <Text style={styles.metricLabel}>Visibilidade</Text>
-            </View>
-          </View>
+              <View style={styles.weatherMetrics}>
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>🌡️</Text>
+                  <Text style={styles.metricValue}>{weatherData.temperature}°C</Text>
+                  <Text style={styles.metricLabel}>Temperatura</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>🌊</Text>
+                  <Text style={styles.metricValue}>{weatherData.waveHeight}m</Text>
+                  <Text style={styles.metricLabel}>Ondas</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>💨</Text>
+                  <Text style={styles.metricValue}>{weatherData.windSpeed}km/h</Text>
+                  <Text style={styles.metricLabel}>Vento</Text>
+                </View>
+
+                <View style={styles.weatherMetric}>
+                  <Text style={styles.metricIcon}>👁️</Text>
+                  <Text style={styles.metricValue}>{weatherData.visibility}km</Text>
+                  <Text style={styles.metricLabel}>Visibilidade</Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Admin Actions */}
@@ -276,7 +283,7 @@ export default function AdminDashboardScreen() {
             </View>
             <View style={styles.activityItem}>
               <Text style={styles.activityTime}>13:15</Text>
-              <Text style={styles.activityText}>Estado alterado para: {getStatusText(weatherData.status)}</Text>
+              <Text style={styles.activityText}>Estado alterado para: {weatherData ? getStatusText(weatherData.status) : '--'}</Text>
             </View>
             <View style={styles.activityItem}>
               <Text style={styles.activityTime}>12:00</Text>
