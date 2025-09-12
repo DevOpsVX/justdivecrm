@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,31 @@ import {
   ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
 
 const { width } = Dimensions.get('window');
 
 export default function StudentDashboardScreen() {
-  const weatherStatus = 'GREEN'; // Mock data
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loadingWeather, setLoadingWeather] = useState(true);
   const nextClass = '14:30 - Mergulho Avançado';
+
+  const loadWeather = async () => {
+    try {
+      const data = await fetchCurrentWeather('lagos');
+      setWeatherData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWeather();
+    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -74,22 +93,26 @@ export default function StudentDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico</Text>
-          <View style={styles.weatherContainer}>
-            <View 
-              style={[
-                styles.statusIndicator, 
-                { backgroundColor: getStatusColor(weatherStatus) }
-              ]} 
-            />
-            <View style={styles.weatherInfo}>
-              <Text style={styles.weatherStatus}>
-                {getStatusText(weatherStatus)}
-              </Text>
-              <Text style={styles.weatherDetails}>
-                🌡️ Temperatura: 22°C • 🌊 Ondas: 1.2m • 💨 Vento: 15km/h
-              </Text>
+          {loadingWeather || !weatherData ? (
+            <Text style={{ color: 'white' }}>Carregando...</Text>
+          ) : (
+            <View style={styles.weatherContainer}>
+              <View
+                style={[
+                  styles.statusIndicator,
+                  { backgroundColor: getStatusColor(weatherData.status) }
+                ]}
+              />
+              <View style={styles.weatherInfo}>
+                <Text style={styles.weatherStatus}>
+                  {getStatusText(weatherData.status)}
+                </Text>
+                <Text style={styles.weatherDetails}>
+                  🌡️ Temperatura: {weatherData.temperature}°C • 🌊 Ondas: {weatherData.waveHeight}m • 💨 Vento: {weatherData.windSpeed}km/h
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
         </View>
 
         {/* Next Class Card */}
