@@ -40,19 +40,20 @@ class OpenAIService:
         Analisa condições meteorológicas e fornece recomendações para mergulho
         """
         try:
-            conditions = weather_data.get('conditions', {})
-            location = weather_data.get('location', 'Local')
-            
+            prompt_conditions, analyzed_conditions = self._prepare_weather_conditions(weather_data)
+            location = (weather_data or {}).get('location', 'Local')
+
             prompt = f"""
             Como especialista em mergulho marítimo, analise as seguintes condições meteorológicas para {location}:
-            
-            - Altura das ondas: {conditions.get('wave_height', 0)}m
-            - Velocidade do vento: {conditions.get('wind_speed', 0)} kn
-            - Rajadas: {conditions.get('gust', 0)} kn
-            - Precipitação: {conditions.get('precipitation', 0)}%
-            - Visibilidade: {conditions.get('visibility', 10)} km
-            - Temperatura da água: {conditions.get('water_temperature', 18)}°C
-            
+
+            - Altura das ondas: {prompt_conditions.get('wave_height', 0)}m
+            - Período das ondas: {prompt_conditions.get('wave_period', 0)}s
+            - Velocidade do vento: {prompt_conditions.get('wind_speed', 0)} kn
+            - Rajadas: {prompt_conditions.get('gust', 0)} kn
+            - Precipitação: {prompt_conditions.get('precipitation', 0)}%
+            - Visibilidade: {prompt_conditions.get('visibility', 10)} km
+            - Temperatura da água: {prompt_conditions.get('water_temperature', 18)}°C
+
             Forneça uma análise em português de Portugal com:
             1. Avaliação geral das condições (2-3 frases)
             2. Recomendações específicas para mergulhadores (2-3 frases)
@@ -77,12 +78,91 @@ class OpenAIService:
                 'analysis': analysis,
                 'timestamp': datetime.utcnow().isoformat(),
                 'location': location,
-                'conditions_analyzed': conditions
+                'conditions_analyzed': analyzed_conditions
             }
             
         except Exception as e:
             print(f"Erro na análise OpenAI: {e}")
             return self._get_mock_analysis(weather_data)
+
+    def _prepare_weather_conditions(self, weather_data: Optional[Dict]) -> tuple[Dict, Dict]:
+        """Normaliza o payload meteorológico para uso no prompt e no retorno."""
+        if not weather_data:
+            return {}, {}
+
+        source = weather_data.get('conditions') if isinstance(weather_data.get('conditions'), dict) else weather_data
+
+        # Mapear diferentes formatos de payload para chaves canónicas
+        canonical_map = {
+            'waveHeight': ['waveHeight', 'wave_height'],
+            'wavePeriod': ['wavePeriod', 'wave_period'],
+            'windSpeed': ['windSpeed', 'wind_speed'],
+            'gust': ['gust'],
+            'precipitation': ['precipitation'],
+            'visibility': ['visibility'],
+            'waterTemperature': ['waterTemperature', 'water_temperature'],
+            'temperature': ['temperature', 'air_temperature', 'airTemperature'],
+            'status': ['status'],
+            'source': ['source'],
+            'timestamp': ['timestamp'],
+            'next_update': ['next_update', 'nextUpdate'],
+        }
+
+        numeric_keys = {
+            'waveHeight',
+            'wavePeriod',
+            'windSpeed',
+            'gust',
+            'precipitation',
+            'visibility',
+            'waterTemperature',
+            'temperature',
+        }
+
+        analyzed_conditions: Dict[str, Optional[float]] = {}
+        for canonical_key, aliases in canonical_map.items():
+            for alias in aliases:
+                if alias in source and source[alias] is not None:
+                    value = source[alias]
+                    if canonical_key in numeric_keys:
+                        coerced = self._coerce_to_float(value)
+                        value = coerced if coerced is not None else value
+                    analyzed_conditions[canonical_key] = value
+                    break
+
+        # Garantir preservação da temperatura original se existir separadamente
+        if 'temperature' in source and source['temperature'] is not None:
+            analyzed_conditions.setdefault('temperature', source['temperature'])
+
+        prompt_mapping = {
+            'wave_height': 'waveHeight',
+            'wave_period': 'wavePeriod',
+            'wind_speed': 'windSpeed',
+            'gust': 'gust',
+            'precipitation': 'precipitation',
+            'visibility': 'visibility',
+            'water_temperature': 'waterTemperature',
+            'air_temperature': 'temperature',
+        }
+
+        prompt_conditions: Dict[str, float] = {}
+        for prompt_key, canonical_key in prompt_mapping.items():
+            if canonical_key not in analyzed_conditions:
+                continue
+            value = analyzed_conditions[canonical_key]
+            if canonical_key in numeric_keys:
+                coerced = self._coerce_to_float(value)
+                value = coerced if coerced is not None else value
+            prompt_conditions[prompt_key] = value
+
+        return prompt_conditions, analyzed_conditions
+
+    @staticmethod
+    def _coerce_to_float(value: Optional[float]) -> Optional[float]:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
     
     def generate_student_recommendations(self, student_data: Dict) -> Dict:
         """
