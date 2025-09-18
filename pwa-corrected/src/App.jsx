@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import LoginModernized from './components/LoginModernized'
 import DashboardModernized from './components/DashboardModernized'
@@ -39,6 +39,7 @@ function App() {
   const [aiService] = useState(new AIService())
   const [showInstallPrompt, setShowInstallPrompt] = useState(false)
   const [notifications, setNotifications] = useState([])
+  const weatherIntervalRef = useRef(null)
 
   useEffect(() => {
     const savedUser = localStorage.getItem('justdive_user')
@@ -47,16 +48,9 @@ function App() {
     if ('serviceWorker' in navigator && !window.matchMedia('(display-mode: standalone)').matches) {
       setShowInstallPrompt(true)
     }
-
-    // Carregar dados meteorológicos reais
-    if (savedUser) {
-      fetchWeatherData()
-      const weatherInterval = setInterval(fetchWeatherData, 15 * 60 * 1000) // 15 minutos
-      return () => clearInterval(weatherInterval)
-    }
   }, [])
 
-  const fetchWeatherData = async () => {
+  const fetchWeatherData = useCallback(async () => {
     try {
       const response = await fetch('/api/weather/berlengas')
       if (response.ok) {
@@ -75,7 +69,27 @@ function App() {
         status: Math.random() > 0.8 ? 'YELLOW' : Math.random() > 0.95 ? 'RED' : 'GREEN'
       }))
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      if (weatherIntervalRef.current) {
+        clearInterval(weatherIntervalRef.current)
+      }
+      fetchWeatherData()
+      weatherIntervalRef.current = setInterval(fetchWeatherData, 15 * 60 * 1000)
+    } else if (weatherIntervalRef.current) {
+      clearInterval(weatherIntervalRef.current)
+      weatherIntervalRef.current = null
+    }
+
+    return () => {
+      if (weatherIntervalRef.current) {
+        clearInterval(weatherIntervalRef.current)
+        weatherIntervalRef.current = null
+      }
+    }
+  }, [user, fetchWeatherData])
 
   const handleLogin = (userData) => {
     setUser(userData)
@@ -84,6 +98,10 @@ function App() {
   }
 
   const handleLogout = () => {
+    if (weatherIntervalRef.current) {
+      clearInterval(weatherIntervalRef.current)
+      weatherIntervalRef.current = null
+    }
     setUser(null)
     localStorage.removeItem('justdive_user')
     setCurrentPage('dashboard')
