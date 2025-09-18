@@ -196,18 +196,27 @@ def get_weather_widget_data(location):
             return jsonify({'error': 'Local não encontrado'}), 404
         
         # Dados simplificados para widget
+        status = weather_data.get('status')
+
         widget_data = {
-            'location': weather_data['location'],
-            'status': weather_data['status'],
+            'location': weather_data.get('location'),
+            'status': status,
             'status_text': {
                 'GREEN': 'Condições Excelentes',
-                'YELLOW': 'Atenção Necessária', 
+                'YELLOW': 'Atenção Necessária',
                 'RED': 'Mergulho Cancelado'
-            }.get(weather_data['status'], 'Status Desconhecido'),
-            'wave_height': weather_data['conditions']['wave_height'],
-            'wind_speed': weather_data['conditions']['wind_speed'],
-            'next_update': weather_data['next_update'],
-            'timestamp': weather_data['timestamp']
+            }.get(status, 'Status Desconhecido'),
+            'temperature': weather_data.get('temperature'),
+            'waterTemperature': weather_data.get('waterTemperature'),
+            'waveHeight': weather_data.get('waveHeight'),
+            'wavePeriod': weather_data.get('wavePeriod'),
+            'windSpeed': weather_data.get('windSpeed'),
+            'gust': weather_data.get('gust'),
+            'precipitation': weather_data.get('precipitation'),
+            'visibility': weather_data.get('visibility'),
+            'next_update': weather_data.get('next_update'),
+            'timestamp': weather_data.get('timestamp'),
+            'source': weather_data.get('source')
         }
         
         return jsonify({
