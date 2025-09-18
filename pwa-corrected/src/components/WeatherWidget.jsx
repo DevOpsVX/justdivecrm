@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,26 +14,52 @@ import {
 } from 'lucide-react'
 import { fetchCurrentWeather } from '@/services/weatherApi'
 
-const WeatherWidget = ({ location = 'lagos', compact = false }) => {
+const WeatherWidget = ({ location, compact = false }) => {
+  const envDefaultLocation =
+    typeof import.meta.env.VITE_DEFAULT_LOCATION === 'string'
+      ? import.meta.env.VITE_DEFAULT_LOCATION.trim()
+      : ''
+  const fallbackLocation = envDefaultLocation || 'berlengas'
+  const resolvedLocation =
+    typeof location === 'string' && location.trim()
+      ? location.trim()
+      : fallbackLocation
+
   const [data, setData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(null)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
-      const result = await fetchCurrentWeather(location)
-      setData(result)
+      const result = await fetchCurrentWeather(resolvedLocation)
+      const rawData = result?.payload?.data ?? result?.data ?? result
+
+      if (!rawData) {
+        setData(null)
+        return
+      }
+
+      const normalizedData = {
+        ...rawData,
+        status:
+          typeof rawData.status === 'string'
+            ? rawData.status.toLowerCase()
+            : rawData.status,
+        location: rawData.location ?? resolvedLocation,
+      }
+
+      setData(normalizedData)
       setLastUpdate(new Date())
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [resolvedLocation])
 
   useEffect(() => {
     load()
     const interval = setInterval(load, 15 * 60 * 1000)
     return () => clearInterval(interval)
-  }, [location])
+  }, [load])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
