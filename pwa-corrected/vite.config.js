@@ -12,10 +12,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { host: true, port: 5173 },
+  server: { host: true, port: 5173, watch: { usePolling: true }, allowedHosts: [...allowed, '5173-iyjytwbwzmui78frewlp3-040d3072.manus.computer'] },
   preview: {
     host: true, // 0.0.0.0
     port: Number(process.env.PORT) || 4173,
-    allowedHosts: allowed,
+    allowedHosts: [...allowed, '5173-iyjytwbwzmui78frewlp3-040d3072.manus.computer'],
   },
 })

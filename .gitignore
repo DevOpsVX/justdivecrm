@@ -11,3 +11,9 @@ node_modules/
 
 # backups
 *.bak
+
+# build
+pwa-corrected/dist/
+# env
+.env
+.env.*
