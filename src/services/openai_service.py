@@ -40,8 +40,8 @@ class OpenAIService:
         Analisa condições meteorológicas e fornece recomendações para mergulho
         """
         try:
-            conditions = weather_data.get('conditions', {})
             location = weather_data.get('location', 'Local')
+            conditions = self._extract_weather_metrics(weather_data)
             
             prompt = f"""
             Como especialista em mergulho marítimo, analise as seguintes condições meteorológicas para {location}:
@@ -79,10 +79,66 @@ class OpenAIService:
                 'location': location,
                 'conditions_analyzed': conditions
             }
-            
+
         except Exception as e:
             print(f"Erro na análise OpenAI: {e}")
             return self._get_mock_analysis(weather_data)
+
+    def _extract_weather_metrics(self, weather_data: Dict) -> Dict:
+        """
+        Normaliza as métricas meteorológicas para um formato consistente.
+
+        Prioriza as chaves achatadas fornecidas pelo WeatherService, mantendo
+        compatibilidade com payloads mais antigos que utilizavam o campo
+        "conditions" com notação snake_case.
+        """
+
+        weather_data = weather_data or {}
+        nested_conditions = weather_data.get('conditions') or {}
+
+        metric_keys = {
+            'wave_height': ('waveHeight', 'wave_height'),
+            'wind_speed': ('windSpeed', 'wind_speed'),
+            'gust': ('gust', 'wind_gust'),
+            'precipitation': ('precipitation',),
+            'visibility': ('visibility',),
+            'water_temperature': ('waterTemperature', 'water_temperature'),
+            'air_temperature': ('airTemperature', 'temperature', 'air_temperature'),
+            'wave_period': ('wavePeriod', 'wave_period'),
+        }
+
+        defaults = {
+            'wave_height': 0.0,
+            'wind_speed': 0.0,
+            'gust': 0.0,
+            'precipitation': 0.0,
+            'visibility': 10.0,
+            'water_temperature': 18.0,
+            'air_temperature': 20.0,
+            'wave_period': 0.0,
+        }
+
+        def _get_value(keys, default=None):
+            for key in keys:
+                if key in weather_data and weather_data[key] is not None:
+                    return weather_data[key]
+                if key in nested_conditions and nested_conditions[key] is not None:
+                    return nested_conditions[key]
+            return default
+
+        def _round_if_number(value):
+            try:
+                number = float(value)
+                return round(number, 1)
+            except (TypeError, ValueError):
+                return value
+
+        normalized = {}
+        for metric, keys in metric_keys.items():
+            value = _get_value(keys, defaults.get(metric))
+            normalized[metric] = _round_if_number(value)
+
+        return normalized
     
     def generate_student_recommendations(self, student_data: Dict) -> Dict:
         """
@@ -244,17 +300,30 @@ class OpenAIService:
         """
         status = weather_data.get('status', 'GREEN')
         location = weather_data.get('location', 'Local')
-        
+        conditions = self._extract_weather_metrics(weather_data)
+
         mock_analyses = {
-            'GREEN': f"As condições em {location} estão excelentes para mergulho. Ondas calmas e boa visibilidade proporcionam um ambiente ideal para todas as atividades subaquáticas. Recomendamos aproveitar estas condições favoráveis para mergulhos de exploração e treino de técnicas.",
-            'YELLOW': f"As condições em {location} requerem atenção especial. Ondas moderadas e vento podem afetar a experiência de mergulho. Recomendamos que apenas mergulhadores experientes participem, com equipamento adequado e supervisão próxima.",
-            'RED': f"As condições em {location} não são seguras para mergulho. Ondas altas e vento forte criam riscos significativos. Todas as atividades de mergulho devem ser suspensas até que as condições melhorem."
+            'GREEN': (
+                f"As condições em {location} estão excelentes para mergulho. Ondas calmas e boa visibilidade "
+                "proporcionam um ambiente ideal para todas as atividades subaquáticas. Recomendamos aproveitar "
+                "estas condições favoráveis para mergulhos de exploração e treino de técnicas."
+            ),
+            'YELLOW': (
+                f"As condições em {location} requerem atenção especial. Ondas moderadas e vento podem afetar a "
+                "experiência de mergulho. Recomendamos que apenas mergulhadores experientes participem, com "
+                "equipamento adequado e supervisão próxima."
+            ),
+            'RED': (
+                f"As condições em {location} não são seguras para mergulho. Ondas altas e vento forte criam riscos "
+                "significativos. Todas as atividades de mergulho devem ser suspensas até que as condições melhorem."
+            ),
         }
-        
+
         return {
             'analysis': mock_analyses.get(status, mock_analyses['GREEN']),
             'timestamp': datetime.utcnow().isoformat(),
             'location': location,
+            'conditions_analyzed': conditions,
             'mock_data': True
         }
     
