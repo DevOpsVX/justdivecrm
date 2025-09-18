@@ -74,7 +74,8 @@ const DashboardModernized = ({ user, onNavigate }) => {
   }, [])
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const normalizedStatus = status?.toUpperCase()
+    switch (normalizedStatus) {
       case 'GREEN': return 'bg-green-500/20 text-green-300 border-green-500/30'
       case 'YELLOW': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
       case 'RED': return 'bg-red-500/20 text-red-300 border-red-500/30'
@@ -83,13 +84,16 @@ const DashboardModernized = ({ user, onNavigate }) => {
   }
 
   const getStatusText = (status) => {
-    switch (status) {
+    const normalizedStatus = status?.toUpperCase()
+    switch (normalizedStatus) {
       case 'GREEN': return 'Aulas confirmadas'
       case 'YELLOW': return 'Atenção ao clima'
       case 'RED': return 'Aulas canceladas'
       default: return 'Status desconhecido'
     }
   }
+
+  const weatherStatusUpper = weatherData?.status?.toUpperCase()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -275,9 +279,9 @@ const DashboardModernized = ({ user, onNavigate }) => {
                   <Badge className={`${getStatusColor(weatherData.status)} border`}>
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'GREEN' ? 'bg-green-400' : weatherData.status === 'YELLOW' ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'YELLOW' || weatherData.status === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${weatherStatusUpper === 'GREEN' ? 'bg-green-400' : weatherStatusUpper === 'YELLOW' ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${weatherStatusUpper === 'YELLOW' || weatherStatusUpper === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${weatherStatusUpper === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
                       </div>
                       <span>{getStatusText(weatherData.status)}</span>
                     </div>
@@ -413,26 +417,29 @@ const DashboardModernized = ({ user, onNavigate }) => {
                     </tr>
                   </thead>
                   <tbody className="space-y-3">
-                    {upcomingClasses.map((classItem, index) => (
-                      <tr key={index} className="border-b border-slate-700/50">
-                        <td className="py-4 text-white font-medium">{classItem.time}</td>
-                        <td className="py-4 text-slate-300">{classItem.location}</td>
-                        <td className="py-4 text-slate-300">{classItem.instructor}</td>
-                        <td className="py-4 text-slate-300">{classItem.students}</td>
-                        <td className="py-4">
-                          <Badge className={`${getStatusColor(classItem.status)} border`}>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex space-x-1">
-                                <div className={`w-2 h-2 rounded-full ${classItem.status === 'GREEN' ? 'bg-green-400' : classItem.status === 'YELLOW' ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
-                                <div className={`w-2 h-2 rounded-full ${classItem.status === 'YELLOW' || classItem.status === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
-                                <div className={`w-2 h-2 rounded-full ${classItem.status === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
+                    {upcomingClasses.map((classItem, index) => {
+                      const classStatusUpper = classItem.status?.toUpperCase()
+                      return (
+                        <tr key={index} className="border-b border-slate-700/50">
+                          <td className="py-4 text-white font-medium">{classItem.time}</td>
+                          <td className="py-4 text-slate-300">{classItem.location}</td>
+                          <td className="py-4 text-slate-300">{classItem.instructor}</td>
+                          <td className="py-4 text-slate-300">{classItem.students}</td>
+                          <td className="py-4">
+                            <Badge className={`${getStatusColor(classItem.status)} border`}>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex space-x-1">
+                                  <div className={`w-2 h-2 rounded-full ${classStatusUpper === 'GREEN' ? 'bg-green-400' : classStatusUpper === 'YELLOW' ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
+                                  <div className={`w-2 h-2 rounded-full ${classStatusUpper === 'YELLOW' || classStatusUpper === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
+                                  <div className={`w-2 h-2 rounded-full ${classStatusUpper === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
+                                </div>
+                                <span>{classItem.statusText}</span>
                               </div>
-                              <span>{classItem.statusText}</span>
-                            </div>
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
+                            </Badge>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
