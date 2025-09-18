@@ -74,7 +74,8 @@ const DashboardModernized = ({ user, onNavigate }) => {
   }, [])
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const normalized = status?.toString().toUpperCase()
+    switch (normalized) {
       case 'GREEN': return 'bg-green-500/20 text-green-300 border-green-500/30'
       case 'YELLOW': return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
       case 'RED': return 'bg-red-500/20 text-red-300 border-red-500/30'
@@ -83,13 +84,18 @@ const DashboardModernized = ({ user, onNavigate }) => {
   }
 
   const getStatusText = (status) => {
-    switch (status) {
+    const normalized = status?.toString().toUpperCase()
+    switch (normalized) {
       case 'GREEN': return 'Aulas confirmadas'
       case 'YELLOW': return 'Atenção ao clima'
       case 'RED': return 'Aulas canceladas'
       default: return 'Status desconhecido'
     }
   }
+
+  const normalizedWeatherStatus = weatherData?.status
+    ? weatherData.status.toString().toUpperCase()
+    : undefined
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -272,14 +278,14 @@ const DashboardModernized = ({ user, onNavigate }) => {
                       Condições do Tempo — {weatherData.location}
                     </CardTitle>
                   </div>
-                  <Badge className={`${getStatusColor(weatherData.status)} border`}>
+                  <Badge className={`${getStatusColor(normalizedWeatherStatus)} border`}>
                     <div className="flex items-center space-x-2">
                       <div className="flex space-x-1">
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'GREEN' ? 'bg-green-400' : weatherData.status === 'YELLOW' ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'YELLOW' || weatherData.status === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
-                        <div className={`w-2 h-2 rounded-full ${weatherData.status === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${normalizedWeatherStatus === 'GREEN' ? 'bg-green-400' : normalizedWeatherStatus === 'YELLOW' ? 'bg-yellow-400' : normalizedWeatherStatus === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${normalizedWeatherStatus === 'YELLOW' || normalizedWeatherStatus === 'RED' ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${normalizedWeatherStatus === 'RED' ? 'bg-red-400' : 'bg-gray-400'}`}></div>
                       </div>
-                      <span>{getStatusText(weatherData.status)}</span>
+                      <span>{getStatusText(normalizedWeatherStatus)}</span>
                     </div>
                   </Badge>
                 </div>
