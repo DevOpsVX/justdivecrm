@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ interface AdminStats {
 export default function AdminDashboardScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const [adminStats] = useState<AdminStats>({
@@ -34,7 +35,12 @@ export default function AdminDashboardScreen() {
     monthlyRevenue: 15420,
   });
 
-  const loadWeather = async () => {
+  const loadWeather = useCallback(async ({ showLoading = false } = {}) => {
+    if (showLoading) {
+      setLoadingWeather(true);
+    }
+    setWeatherError(null);
+
     try {
       const data = await fetchCurrentWeather('lagos');
       setWeatherData({
@@ -46,22 +52,28 @@ export default function AdminDashboardScreen() {
       });
     } catch (err) {
       console.error(err);
+      const message = err instanceof Error
+        ? err.message
+        : 'Não foi possível atualizar o clima agora. Tente novamente em instantes.';
+      setWeatherError(message);
     } finally {
       setLoadingWeather(false);
     }
-  };
+  }, [fetchCurrentWeather]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadWeather();
+    await loadWeather({ showLoading: true });
     setRefreshing(false);
   };
 
   useEffect(() => {
-    loadWeather();
-    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    loadWeather({ showLoading: true });
+    const interval = setInterval(() => {
+      loadWeather();
+    }, 15 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadWeather]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -171,9 +183,11 @@ export default function AdminDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico Atual</Text>
-          {loadingWeather || !weatherData ? (
-            <Text style={{ color: 'white' }}>Carregando...</Text>
-          ) : (
+          {loadingWeather ? (
+            <Text style={styles.loadingText}>Carregando condições meteorológicas...</Text>
+          ) : weatherError ? (
+            <Text style={styles.errorText}>{weatherError}</Text>
+          ) : weatherData ? (
             <>
               <View
                 style={[
@@ -221,6 +235,8 @@ export default function AdminDashboardScreen() {
                 </View>
               </View>
             </>
+          ) : (
+            <Text style={styles.errorText}>Dados meteorológicos indisponíveis no momento.</Text>
           )}
         </View>
 
@@ -354,6 +370,8 @@ const styles = StyleSheet.create({
   statusIndicator: { width: 20, height: 20, borderRadius: 10, marginRight: 12 },
   weatherStatusText: { fontSize: 18, fontWeight: 'bold', color: 'white' },
   lastUpdate: { fontSize: 12, color: '#A0AEC0' },
+  loadingText: { color: 'white', fontSize: 14 },
+  errorText: { color: '#F87171', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   weatherMetrics: { flexDirection: 'row', justifyContent: 'space-around' },
   weatherMetric: { alignItems: 'center' },
   metricIcon: { fontSize: 20, marginBottom: 4 },

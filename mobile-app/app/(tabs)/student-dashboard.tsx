@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -17,24 +17,36 @@ const { width } = Dimensions.get('window');
 export default function StudentDashboardScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
   const nextClass = '14:30 - Mergulho Avançado';
 
-  const loadWeather = async () => {
+  const loadWeather = useCallback(async ({ showLoading = false } = {}) => {
+    if (showLoading) {
+      setLoadingWeather(true);
+    }
+    setWeatherError(null);
+
     try {
       const data = await fetchCurrentWeather('lagos');
       setWeatherData(data);
     } catch (err) {
       console.error(err);
+      const message = err instanceof Error
+        ? err.message
+        : 'Não foi possível carregar o clima agora. Tente novamente em instantes.';
+      setWeatherError(message);
     } finally {
       setLoadingWeather(false);
     }
-  };
+  }, [fetchCurrentWeather]);
 
   useEffect(() => {
-    loadWeather();
-    const interval = setInterval(loadWeather, 15 * 60 * 1000);
+    loadWeather({ showLoading: true });
+    const interval = setInterval(() => {
+      loadWeather();
+    }, 15 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadWeather]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -88,9 +100,11 @@ export default function StudentDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico</Text>
-          {loadingWeather || !weatherData ? (
-            <Text style={{ color: 'white' }}>Carregando...</Text>
-          ) : (
+          {loadingWeather ? (
+            <Text style={styles.loadingText}>Carregando condições meteorológicas...</Text>
+          ) : weatherError ? (
+            <Text style={styles.errorText}>{weatherError}</Text>
+          ) : weatherData ? (
             <View style={styles.weatherContainer}>
               <View
                 style={[
@@ -107,6 +121,8 @@ export default function StudentDashboardScreen() {
                 </Text>
               </View>
             </View>
+          ) : (
+            <Text style={styles.errorText}>Dados meteorológicos indisponíveis no momento.</Text>
           )}
         </View>
 
@@ -256,6 +272,8 @@ const styles = StyleSheet.create({
   weatherInfo: { flex: 1 },
   weatherStatus: { fontSize: 16, fontWeight: '600', color: 'white', marginBottom: 4 },
   weatherDetails: { fontSize: 14, color: '#A0AEC0' },
+  loadingText: { color: 'white', fontSize: 14 },
+  errorText: { color: '#F87171', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   classContainer: { alignItems: 'flex-start' },
   classTime: { fontSize: 18, fontWeight: 'bold', color: '#00FFFF', marginBottom: 8 },
   classLocation: { fontSize: 14, color: '#A0AEC0', marginBottom: 16 },
