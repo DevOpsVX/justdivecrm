@@ -5,7 +5,7 @@ import os
 import requests
 from typing import Dict, List, Optional, Any
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.utils.encryption import encrypt_sensitive_data, decrypt_sensitive_data
 
 class SupabaseService:
