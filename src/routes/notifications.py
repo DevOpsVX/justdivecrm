@@ -22,7 +22,7 @@ def mock_notification():
     })
 
 
-@notifications_bp.route('/api/notifications/register', methods=['POST'])
+@notifications_bp.route('/notifications/register', methods=['POST'])
 def register_token():
     """
     Register a device push token so the server can send notifications to it later.
@@ -38,7 +38,7 @@ def register_token():
     return jsonify({'message': 'token registered'}), 200
 
 
-@notifications_bp.route('/api/notifications/send', methods=['POST'])
+@notifications_bp.route('/notifications/send', methods=['POST'])
 def send_notification():
     """
     Send a push notification to all registered devices.
