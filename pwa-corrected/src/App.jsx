@@ -60,8 +60,10 @@ function App() {
     try {
       const response = await fetch('/api/weather/berlengas')
       if (response.ok) {
-        const data = await response.json()
-        setWeatherData(prev => ({ ...prev, ...data }))
+        const { data: apiData } = await response.json()
+        if (apiData) {
+          setWeatherData(prev => ({ ...prev, ...apiData }))
+        }
       }
     } catch (error) {
       console.error('Erro ao buscar dados meteorológicos:', error)
