@@ -5,8 +5,9 @@ import os
 import requests
 from typing import Dict, List, Optional, Any
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.utils.encryption import encrypt_sensitive_data, decrypt_sensitive_data
+from src.utils.weather import normalize_conditions
 
 class SupabaseService:
     def __init__(self):
@@ -307,13 +308,21 @@ class SupabaseService:
         """
         Salva dados meteorológicos para histórico
         """
-        weather_data['timestamp'] = datetime.utcnow().isoformat()
-        
+        timestamp = datetime.utcnow().isoformat()
+        weather_data['timestamp'] = timestamp
+        payload = dict(weather_data)
+
+        # Garantir compatibilidade com payloads antigos que esperavam um dicionário "conditions"
+        if not isinstance(payload.get('conditions'), dict):
+            payload['conditions'] = normalize_conditions(payload)
+
+        payload['timestamp'] = timestamp
+
         try:
             response = requests.post(
                 f"{self.base_url}/weather_history",
                 headers=self.headers,
-                json=weather_data,
+                json=payload,
                 timeout=10
             )
             
