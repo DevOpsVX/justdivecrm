@@ -159,11 +159,6 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
           <div className="text-center space-y-2">
             <Thermometer className="w-6 h-6 text-white mx-auto" />
             <div className="text-xl font-bold text-white">
-              {currentData.humidity}%
-            </div>
-            <div className="text-xs text-blue-200">Umidade</div>
-          </div>
-        </div>
               {currentData.temperature}°C
             </div>
             <div className="text-xs text-blue-200">Temperatura</div>
