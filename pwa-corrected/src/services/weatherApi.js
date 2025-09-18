@@ -1,5 +1,18 @@
-const RAW_BASE = import.meta.env.VITE_API_BASE_URL || 'https://justdivecrm-1.onrender.com/api'
-const API_BASE = RAW_BASE.replace(/\/+$/, '') // sem barra no fim
+const resolveApiBase = () => {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    const origin = window.location.origin.replace(/\/+$/, '')
+    return `${origin}/api`
+  }
+
+  const fallback = import.meta.env.VITE_API_BASE_URL
+  if (fallback) {
+    return fallback.replace(/\/+$/, '')
+  }
+
+  return '/api'
+}
+
+const API_BASE = resolveApiBase()
 
 export async function fetchCurrentWeather(local) {
   const url = `${API_BASE}/weather/current/${encodeURIComponent(local)}`
