@@ -6,7 +6,7 @@ import requests
 
 class NotificationService:
     """
-    A simple in‑memory service to store Expo push tokens and send
+    A simple in-memory service to store Expo push tokens and send
     notifications to them.  In a production system you would likely
     persist tokens in a database.
     """
