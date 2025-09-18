@@ -26,7 +26,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
   const [weatherData, setWeatherData] = useState({
     location: 'Berlengas',
-    status: 'GREEN',
+    status: 'green',
     temperature: 22,
     waterTemperature: 18,
     waveHeight: 1.2,
@@ -56,13 +56,39 @@ function App() {
     }
   }, [])
 
-  const fetchWeatherData = async () => {
+  const fetchWeatherData = async (selectedLocation) => {
+    const location = selectedLocation || weatherData?.location || 'Berlengas'
+    const locationKey = typeof location === 'string' ? location.trim().toLowerCase() : 'berlengas'
+
     try {
-      const response = await fetch('/api/weather/berlengas')
-      if (response.ok) {
-        const data = await response.json()
-        setWeatherData(prev => ({ ...prev, ...data }))
+      const response = await fetch(`/api/weather/current/${encodeURIComponent(locationKey)}`)
+      if (!response.ok) {
+        throw new Error(`Falha ao buscar clima: ${response.status}`)
       }
+
+      const json = await response.json()
+      const apiData = json?.data
+
+      if (!apiData) {
+        throw new Error('Resposta meteorológica inválida')
+      }
+
+      setWeatherData(prev => {
+        const previous = prev || {}
+        const merged = { ...previous, ...apiData }
+
+        if (apiData.status) {
+          merged.status = apiData.status.toLowerCase()
+        } else if (merged.status) {
+          merged.status = merged.status.toLowerCase()
+        }
+
+        if (!merged.location) {
+          merged.location = location
+        }
+
+        return merged
+      })
     } catch (error) {
       console.error('Erro ao buscar dados meteorológicos:', error)
       // Simular dados realistas em caso de erro
@@ -72,7 +98,7 @@ function App() {
         waveHeight: Math.round((0.5 + Math.random() * 2) * 10) / 10,
         windSpeed: Math.round(5 + Math.random() * 25),
         visibility: Math.round(5 + Math.random() * 10),
-        status: Math.random() > 0.8 ? 'YELLOW' : Math.random() > 0.95 ? 'RED' : 'GREEN'
+        status: Math.random() > 0.8 ? 'yellow' : Math.random() > 0.95 ? 'red' : 'green'
       }))
     }
   }
