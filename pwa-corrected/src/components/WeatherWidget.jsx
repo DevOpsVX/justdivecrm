@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchCurrentWeather } from '@/services/weatherApi'
 
-const WeatherWidget = ({ location = 'lagos', compact = false }) => {
+const WeatherWidget = ({ location = 'berlengas', compact = false }) => {
   const [data, setData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(null)
@@ -22,7 +22,21 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
   const load = async () => {
     try {
       const result = await fetchCurrentWeather(location)
-      setData(result)
+      const payload = result?.data ?? result
+
+      if (!payload) {
+        throw new Error('Resposta inválida da API meteorológica')
+      }
+
+      const normalizedStatus =
+        typeof payload.status === 'string'
+          ? payload.status.toLowerCase()
+          : 'unknown'
+
+      setData({
+        ...payload,
+        status: normalizedStatus,
+      })
       setLastUpdate(new Date())
     } catch (err) {
       console.error(err)
