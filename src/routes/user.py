@@ -3,6 +3,44 @@ from src.models.user import User, db
 
 user_bp = Blueprint('user', __name__)
 
+DEMO_USERS = {
+    'student@justdive.com': {
+        'password': 'student',
+        'profile': 'student'
+    },
+    'admin@justdive.com': {
+        'password': 'admin',
+        'profile': 'admin'
+    }
+}
+
+
+@user_bp.route('/users/login', methods=['POST'])
+def login_user():
+    data = request.get_json(silent=True) or {}
+
+    email = data.get('email', '').strip().lower()
+    password = data.get('password')
+    requested_profile = data.get('userType')
+
+    if not email or not password:
+        return jsonify({'message': 'Missing credentials'}), 400
+
+    demo_user = DEMO_USERS.get(email)
+
+    if not demo_user or demo_user['password'] != password:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    profile = demo_user['profile']
+
+    if requested_profile and requested_profile != profile:
+        return jsonify({'message': 'Invalid credentials'}), 401
+
+    token = f"{profile}-demo-token"
+
+    return jsonify({'token': token, 'profile': profile}), 200
+
+
 @user_bp.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
