@@ -1,0 +1,338 @@
+/* JUSTDIVE Academy - Identidade Visual Oficial */
+
+:root {
+  /* Cores principais baseadas no site oficial */
+  --justdive-primary: #001f3f;
+  --justdive-secondary: #003d7a;
+  --justdive-accent: #0066cc;
+  --justdive-light-blue: #4da6ff;
+  --justdive-dark-blue: #001122;
+  
+  /* Cores de status para semáforos */
+  --status-green: #00cc66;
+  --status-yellow: #ffcc00;
+  --status-red: #ff4444;
+  
+  /* Cores neutras */
+  --white: #ffffff;
+  --light-gray: #f8f9fa;
+  --medium-gray: #6c757d;
+  --dark-gray: #343a40;
+  
+  /* Transparências */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --overlay-dark: rgba(0, 31, 63, 0.9);
+  --overlay-light: rgba(0, 31, 63, 0.1);
+}
+
+/* Gradientes principais */
+.justdive-gradient {
+  background: linear-gradient(135deg, var(--justdive-primary) 0%, var(--justdive-secondary) 50%, var(--justdive-accent) 100%);
+}
+
+.justdive-gradient-reverse {
+  background: linear-gradient(135deg, var(--justdive-accent) 0%, var(--justdive-secondary) 50%, var(--justdive-primary) 100%);
+}
+
+.justdive-gradient-light {
+  background: linear-gradient(135deg, rgba(0, 31, 63, 0.1) 0%, rgba(0, 61, 122, 0.1) 50%, rgba(0, 102, 204, 0.1) 100%);
+}
+
+/* Efeito de vidro moderno */
+.glass-effect {
+  backdrop-filter: blur(16px) saturate(180%);
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 31, 63, 0.3);
+}
+
+.glass-effect-strong {
+  backdrop-filter: blur(20px) saturate(200%);
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 31, 63, 0.4);
+}
+
+/* Efeitos de hover modernos */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 31, 63, 0.4);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+}
+
+/* Animações de mergulho */
+.diving-animation {
+  animation: dive 3s ease-in-out infinite;
+}
+
+@keyframes dive {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-20px) rotate(-5deg); 
+  }
+}
+
+.wave-animation {
+  animation: wave 2s ease-in-out infinite;
+}
+
+@keyframes wave {
+  0%, 100% { 
+    transform: translateX(0px); 
+  }
+  50% { 
+    transform: translateX(10px); 
+  }
+}
+
+/* Bolhas de fundo */
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: bubble-float 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.bubble-1 {
+  width: 40px;
+  height: 40px;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.bubble-2 {
+  width: 20px;
+  height: 20px;
+  left: 20%;
+  animation-delay: 2s;
+}
+
+.bubble-3 {
+  width: 60px;
+  height: 60px;
+  left: 35%;
+  animation-delay: 4s;
+}
+
+.bubble-4 {
+  width: 30px;
+  height: 30px;
+  right: 30%;
+  animation-delay: 1s;
+}
+
+.bubble-5 {
+  width: 50px;
+  height: 50px;
+  right: 20%;
+  animation-delay: 3s;
+}
+
+.bubble-6 {
+  width: 25px;
+  height: 25px;
+  right: 10%;
+  animation-delay: 5s;
+}
+
+@keyframes bubble-float {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Status de condições meteorológicas */
+.weather-status-green {
+  background: linear-gradient(135deg, var(--status-green) 0%, rgba(0, 204, 102, 0.8) 100%);
+  color: white;
+}
+
+.weather-status-yellow {
+  background: linear-gradient(135deg, var(--status-yellow) 0%, rgba(255, 204, 0, 0.8) 100%);
+  color: #333;
+}
+
+.weather-status-red {
+  background: linear-gradient(135deg, var(--status-red) 0%, rgba(255, 68, 68, 0.8) 100%);
+  color: white;
+}
+
+/* Botões personalizados */
+.btn-justdive-primary {
+  background: linear-gradient(135deg, var(--justdive-accent) 0%, var(--justdive-secondary) 100%);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-justdive-primary:hover {
+  background: linear-gradient(135deg, var(--justdive-light-blue) 0%, var(--justdive-accent) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+}
+
+.btn-justdive-secondary {
+  background: transparent;
+  color: white;
+  border: 2px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.btn-justdive-secondary:hover {
+  background: var(--glass-bg);
+  border-color: var(--justdive-accent);
+  color: white;
+}
+
+/* Cards modernos */
+.card-modern {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 31, 63, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Inputs modernos */
+.input-modern {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.input-modern:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--justdive-accent);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+.input-modern::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Navegação moderna */
+.nav-modern {
+  background: rgba(0, 31, 63, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .bubble {
+    display: none;
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Animações de entrada */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Pulse para notificações */
+.pulse-notification {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+  }
+  50% { 
+    opacity: 0.5; 
+  }
+}
+
+/* Loading spinner personalizado */
+.spinner-justdive {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid var(--justdive-accent);
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

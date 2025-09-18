@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Login from './components/Login'
-import Dashboard from './components/Dashboard'
-import StudentInterface from './components/StudentInterface'
+import LoginSimple from './components/LoginSimple'
+import DashboardGHL from './components/DashboardGHL'
+import StudentInterfaceModern from './components/StudentInterfaceModern'
 import AIChat from './components/AIChat'
 import WeatherWidget from './components/WeatherWidget'
 import InstallPrompt from './components/InstallPrompt'
@@ -70,7 +70,7 @@ function App() {
   if (!user) {
     return (
       <div className="min-h-screen justdive-gradient">
-        <Login onLogin={handleLogin} />
+        <LoginSimple onLogin={handleLogin} />
         {showInstallPrompt && <InstallPrompt onClose={() => setShowInstallPrompt(false)} />}
       </div>
     )
@@ -84,7 +84,7 @@ function App() {
             path="/dashboard"
             element={
               user.type === 'admin' ? (
-                <Dashboard user={user} weatherData={weatherData} onLogout={handleLogout} aiService={aiService} />
+                <DashboardGHL user={user} weatherData={weatherData} onLogout={handleLogout} aiService={aiService} />
               ) : (<Navigate to="/student" replace />)
             }
           />
@@ -101,7 +101,7 @@ function App() {
             path="/student"
             element={
               user.type === 'student' ? (
-                <StudentInterface user={user} weatherData={weatherData} onLogout={handleLogout} aiService={aiService} />
+                <StudentInterfaceModern user={user} weatherData={weatherData} onLogout={handleLogout} aiService={aiService} />
               ) : (<Navigate to="/dashboard" replace />)
             }
           />

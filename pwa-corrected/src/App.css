@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/justdive-theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,55 +118,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-/* JUSTDIVE Custom Styles */
-.justdive-gradient {
-  background: linear-gradient(135deg, #001f3f 0%, #003d7a 50%, #0066cc 100%);
-}
-
-.justdive-gradient-light {
-  background: linear-gradient(135deg, rgba(0, 31, 63, 0.1) 0%, rgba(0, 61, 122, 0.1) 50%, rgba(0, 102, 204, 0.1) 100%);
-}
-
-.weather-status-green {
-  background: linear-gradient(135deg, rgba(0, 204, 102, 0.9) 0%, rgba(0, 204, 102, 0.7) 100%);
-}
-
-.weather-status-yellow {
-  background: linear-gradient(135deg, rgba(255, 204, 0, 0.9) 0%, rgba(255, 204, 0, 0.7) 100%);
-}
-
-.weather-status-red {
-  background: linear-gradient(135deg, rgba(255, 68, 68, 0.9) 0%, rgba(255, 68, 68, 0.7) 100%);
-}
-
-.diving-animation {
-  animation: dive 3s ease-in-out infinite;
-}
-
-@keyframes dive {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(-5deg); }
-}
-
-.pulse-notification {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.weather-widget-container {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glass-effect {
-  backdrop-filter: blur(16px) saturate(180%);
-  background-color: rgba(17, 25, 40, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.125);
 }
