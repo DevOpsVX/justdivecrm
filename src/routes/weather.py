@@ -196,18 +196,29 @@ def get_weather_widget_data(location):
             return jsonify({'error': 'Local não encontrado'}), 404
         
         # Dados simplificados para widget
+        status_text = {
+            'GREEN': 'Condições Excelentes',
+            'YELLOW': 'Atenção Necessária',
+            'RED': 'Mergulho Cancelado'
+        }.get(weather_data.get('status'), 'Status Desconhecido')
+
+        wave_height = weather_data.get('waveHeight')
+        wind_speed = weather_data.get('windSpeed')
+
         widget_data = {
-            'location': weather_data['location'],
-            'status': weather_data['status'],
-            'status_text': {
-                'GREEN': 'Condições Excelentes',
-                'YELLOW': 'Atenção Necessária', 
-                'RED': 'Mergulho Cancelado'
-            }.get(weather_data['status'], 'Status Desconhecido'),
-            'wave_height': weather_data['conditions']['wave_height'],
-            'wind_speed': weather_data['conditions']['wind_speed'],
-            'next_update': weather_data['next_update'],
-            'timestamp': weather_data['timestamp']
+            'location': weather_data.get('location'),
+            'status': weather_data.get('status'),
+            'statusText': status_text,
+            'waveHeight': wave_height,
+            'windSpeed': wind_speed,
+            'waves': f"{wave_height}m" if wave_height is not None else None,
+            'wind': f"{wind_speed} km/h" if wind_speed is not None else None,
+            'waterTemperature': weather_data.get('waterTemperature'),
+            'temperature': weather_data.get('temperature'),
+            'visibility': weather_data.get('visibility'),
+            'next_update': weather_data.get('next_update'),
+            'nextUpdate': weather_data.get('next_update'),
+            'timestamp': weather_data.get('timestamp')
         }
         
         return jsonify({
