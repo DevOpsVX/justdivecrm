@@ -12,6 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
+import { WEATHER_ERROR_MESSAGE } from '../../services/weatherApi';
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +27,7 @@ export default function AdminDashboardScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
   const [adminStats] = useState<AdminStats>({
     totalStudents: 156,
@@ -35,6 +37,9 @@ export default function AdminDashboardScreen() {
   });
 
   const loadWeather = async () => {
+    setWeatherError(null);
+    setLoadingWeather(true);
+
     try {
       const data = await fetchCurrentWeather('lagos');
       setWeatherData({
@@ -45,7 +50,13 @@ export default function AdminDashboardScreen() {
         }),
       });
     } catch (err) {
-      console.error(err);
+      console.error('Erro ao carregar condições meteorológicas:', err);
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : WEATHER_ERROR_MESSAGE;
+      setWeatherError(message);
+      setWeatherData(null);
     } finally {
       setLoadingWeather(false);
     }
@@ -171,9 +182,11 @@ export default function AdminDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico Atual</Text>
-          {loadingWeather || !weatherData ? (
-            <Text style={{ color: 'white' }}>Carregando...</Text>
-          ) : (
+          {loadingWeather && !weatherData ? (
+            <Text style={styles.messageText}>Carregando...</Text>
+          ) : weatherError ? (
+            <Text style={styles.errorText}>{weatherError}</Text>
+          ) : weatherData ? (
             <>
               <View
                 style={[
@@ -221,6 +234,8 @@ export default function AdminDashboardScreen() {
                 </View>
               </View>
             </>
+          ) : (
+            <Text style={styles.messageText}>Sem dados meteorológicos disponíveis.</Text>
           )}
         </View>
 
@@ -359,6 +374,8 @@ const styles = StyleSheet.create({
   metricIcon: { fontSize: 20, marginBottom: 4 },
   metricValue: { fontSize: 16, fontWeight: 'bold', color: '#00FFFF', marginBottom: 2 },
   metricLabel: { fontSize: 10, color: '#A0AEC0', textAlign: 'center' },
+  messageText: { color: 'white', textAlign: 'center' },
+  errorText: { color: '#F87171', textAlign: 'center', fontWeight: '600' },
   actionsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   actionButton: { width: (width - 80) / 3, backgroundColor: 'rgba(0, 0, 51, 0.7)', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
   actionIcon: { fontSize: 24, marginBottom: 8 },
