@@ -1,7 +1,22 @@
+import secrets
+
 from flask import Blueprint, jsonify, request
+
 from src.models.user import User, db
 
 user_bp = Blueprint('user', __name__)
+
+
+DEMO_USERS = {
+    'student': {
+        'email': 'student@justdive.com',
+        'password': 'student',
+    },
+    'admin': {
+        'email': 'admin@justdive.com',
+        'password': 'admin',
+    },
+}
 
 @user_bp.route('/users', methods=['GET'])
 def get_users():
@@ -37,3 +52,24 @@ def delete_user(user_id):
     db.session.delete(user)
     db.session.commit()
     return '', 204
+
+
+@user_bp.route('/users/login', methods=['POST'])
+def login():
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    password = data.get('password') or ''
+    requested_profile = (data.get('userType') or '').strip().lower()
+
+    if not email or not password:
+        return jsonify({'message': 'Email e palavra-passe são obrigatórios.'}), 400
+
+    for profile, credentials in DEMO_USERS.items():
+        if requested_profile and profile != requested_profile:
+            continue
+
+        if email == credentials['email'] and password == credentials['password']:
+            token = secrets.token_urlsafe(32)
+            return jsonify({'token': token, 'profile': profile})
+
+    return jsonify({'message': 'Credenciais inválidas.'}), 401

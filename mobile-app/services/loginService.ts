@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '@/constants/api';
 
 type LoginResponse = {
   token: string;
