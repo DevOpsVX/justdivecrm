@@ -8,7 +8,9 @@ load_dotenv()
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory
+from datetime import datetime, timezone
+
+from flask import Flask, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
@@ -18,6 +20,9 @@ from src.routes.notifications import notifications_bp
 from src.routes.ai import ai_bp
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+
+APK_FILENAME = os.getenv('APK_FILENAME', 'justdive-app.apk')
+APK_VERSION = os.getenv('APK_VERSION', '1.0.0')
 
 # Configurações
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'justdive-crm-secret-key-2025')
@@ -48,6 +53,89 @@ def health_check():
         'service': 'JUSTDIVE CRM API',
         'version': '1.0.0'
     }
+
+
+def _format_file_size(num_bytes: int) -> str:
+    size = float(num_bytes)
+    for unit in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024 or unit == 'TB':
+            if unit == 'bytes':
+                return f"{int(size)} {unit}"
+            return f"{size:.2f} {unit}"
+        size /= 1024
+    return f"{num_bytes} bytes"
+
+
+def _locate_apk_file() -> str | None:
+    potential_paths = []
+
+    if app.static_folder:
+        potential_paths.append(os.path.join(app.static_folder, APK_FILENAME))
+
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    potential_paths.append(
+        os.path.join(project_root, 'pwa-corrected', 'public', APK_FILENAME)
+    )
+
+    for path in potential_paths:
+        if os.path.exists(path):
+            return path
+
+    return None
+
+
+@app.route('/api/apk/metadata', methods=['GET'])
+def apk_metadata():
+    apk_path = _locate_apk_file()
+
+    if not apk_path:
+        return (
+            jsonify(
+                {
+                    'available': False,
+                    'message': 'APK ainda não está disponível para download.',
+                }
+            ),
+            404,
+        )
+
+    stats = os.stat(apk_path)
+
+    return jsonify(
+        {
+            'available': True,
+            'fileName': APK_FILENAME,
+            'version': APK_VERSION,
+            'sizeBytes': stats.st_size,
+            'sizeFormatted': _format_file_size(stats.st_size),
+            'downloadUrl': '/api/apk/download',
+            'downloadFileName': f'JUSTDIVE-Academy-v{APK_VERSION}.apk',
+            'lastModified': datetime.fromtimestamp(stats.st_mtime, tz=timezone.utc).isoformat(),
+        }
+    )
+
+
+@app.route('/api/apk/download', methods=['GET'])
+def download_apk():
+    apk_path = _locate_apk_file()
+
+    if not apk_path:
+        return (
+            jsonify(
+                {
+                    'message': 'APK não encontrado. Verifique se o build foi sincronizado.',
+                }
+            ),
+            404,
+        )
+
+    return send_file(
+        apk_path,
+        mimetype='application/vnd.android.package-archive',
+        as_attachment=True,
+        download_name=f'JUSTDIVE-Academy-v{APK_VERSION}.apk',
+        conditional=True,
+    )
 
 # Servir ficheiros estáticos e SPA
 @app.route('/', defaults={'path': ''})

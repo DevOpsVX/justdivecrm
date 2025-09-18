@@ -2,10 +2,21 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Download, Smartphone, X, Waves } from 'lucide-react'
+import {
+  fetchApkMetadata,
+  resolveApkDownloadName,
+  resolveApkDownloadUrl,
+} from '@/services/apkService'
 
 const InstallPrompt = ({ onClose }) => {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [showAndroidInstructions, setShowAndroidInstructions] = useState(false)
+  const [apkInfo, setApkInfo] = useState(null)
+  const [metadataStatus, setMetadataStatus] = useState('loading')
+  const [metadataMessage, setMetadataMessage] = useState('')
+  const [metadataAttempt, setMetadataAttempt] = useState(0)
+  const [isDownloadingApk, setIsDownloadingApk] = useState(false)
+  const [downloadError, setDownloadError] = useState('')
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
@@ -19,6 +30,42 @@ const InstallPrompt = ({ onClose }) => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     }
   }, [])
+
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+
+    const loadMetadata = async () => {
+      setMetadataStatus('loading')
+      setMetadataMessage('')
+
+      try {
+        const metadata = await fetchApkMetadata({ signal: controller.signal })
+
+        if (!active) return
+
+        setApkInfo(metadata)
+        setMetadataStatus('ready')
+      } catch (error) {
+        if (!active || error.name === 'AbortError') return
+
+        const message =
+          error.status === 404
+            ? error.message || 'APK ainda não está disponível para download.'
+            : error.message || 'Não foi possível carregar as informações do APK.'
+
+        setMetadataStatus('error')
+        setMetadataMessage(message)
+      }
+    }
+
+    loadMetadata()
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [metadataAttempt])
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
@@ -38,33 +85,57 @@ const InstallPrompt = ({ onClose }) => {
   }
 
   const downloadAndroidApp = async () => {
+    if (metadataStatus !== 'ready') {
+      setDownloadError(
+        metadataMessage || 'O APK ainda não está disponível para download.'
+      )
+      return
+    }
+
+    setIsDownloadingApk(true)
+    setDownloadError('')
+
     try {
-      // Download direto do APK da pasta public
-      const response = await fetch('/justdive-app.apk')
-      
+      const response = await fetch(resolveApkDownloadUrl(apkInfo))
+
       if (!response.ok) {
-        throw new Error('Erro ao baixar o APK')
+        const message =
+          response.status === 404
+            ? 'APK não encontrado (erro 404).'
+            : 'Erro ao baixar o APK. Tente novamente mais tarde.'
+        const error = new Error(message)
+        error.status = response.status
+        throw error
       }
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = 'JUSTDIVE-Academy-v1.0.0.apk'
+      link.download = resolveApkDownloadName(apkInfo)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      
+
       // Fechar o modal após download
       setTimeout(() => {
         onClose()
       }, 1000)
-      
+
     } catch (error) {
       console.error('Erro no download do APK:', error)
-      alert('Erro ao baixar o APK. Tente novamente.')
+      setDownloadError(
+        error.message || 'Erro ao baixar o APK. Tente novamente mais tarde.'
+      )
+    } finally {
+      setIsDownloadingApk(false)
     }
+  }
+
+  const retryMetadata = () => {
+    setDownloadError('')
+    setMetadataAttempt((attempt) => attempt + 1)
   }
 
   if (showAndroidInstructions) {
@@ -116,11 +187,51 @@ const InstallPrompt = ({ onClose }) => {
 
               <Button
                 onClick={downloadAndroidApp}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                disabled={
+                  isDownloadingApk || metadataStatus !== 'ready'
+                }
+                className="w-full bg-green-600 hover:bg-green-700 text-white disabled:bg-green-800/60"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Baixar APK Android
+                {isDownloadingApk
+                  ? 'Baixando APK...'
+                  : metadataStatus === 'loading'
+                    ? 'Verificando...'
+                    : metadataStatus === 'error'
+                      ? 'Indisponível'
+                      : 'Baixar APK Android'}
               </Button>
+
+              {metadataStatus === 'ready' && apkInfo ? (
+                <div className="text-xs text-blue-200 text-center space-y-1">
+                  <p>Versão: {apkInfo.version}</p>
+                  <p>Tamanho: {apkInfo.sizeFormatted}</p>
+                </div>
+              ) : null}
+
+              {metadataStatus === 'loading' ? (
+                <p className="text-xs text-blue-200 text-center">
+                  Verificando disponibilidade do APK...
+                </p>
+              ) : null}
+
+              {metadataStatus === 'error' ? (
+                <div className="text-xs text-red-200 text-center space-y-2">
+                  <p>{metadataMessage}</p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={retryMetadata}
+                    className="h-7 px-3 text-red-100 hover:bg-red-500/20"
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : null}
+
+              {downloadError ? (
+                <p className="text-xs text-red-200 text-center">{downloadError}</p>
+              ) : null}
 
               <div className="text-xs text-blue-300 text-center">
                 <p>Após o download, ative "Fontes desconhecidas" nas configurações do Android para instalar.</p>
@@ -161,7 +272,10 @@ const InstallPrompt = ({ onClose }) => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setShowAndroidInstructions(true)}
+                  onClick={() => {
+                    setDownloadError('')
+                    setShowAndroidInstructions(true)
+                  }}
                   className="text-blue-200 hover:bg-white/10"
                 >
                   <Smartphone className="w-3 h-3 mr-1" />
