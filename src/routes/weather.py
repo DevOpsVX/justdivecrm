@@ -6,6 +6,7 @@ from src.services.weather_service import weather_service
 from src.services.supabase_service import supabase_service
 from src.services.openai_service import openai_service
 from src.services.notification_service import notification_service
+from src.utils.weather import normalize_conditions
 from datetime import datetime
 
 weather_bp = Blueprint('weather', __name__, url_prefix='/api/weather')
@@ -196,16 +197,18 @@ def get_weather_widget_data(location):
             return jsonify({'error': 'Local não encontrado'}), 404
         
         # Dados simplificados para widget
+        conditions = normalize_conditions(weather_data)
+
         widget_data = {
             'location': weather_data['location'],
             'status': weather_data['status'],
             'status_text': {
                 'GREEN': 'Condições Excelentes',
-                'YELLOW': 'Atenção Necessária', 
+                'YELLOW': 'Atenção Necessária',
                 'RED': 'Mergulho Cancelado'
             }.get(weather_data['status'], 'Status Desconhecido'),
-            'wave_height': weather_data['conditions']['wave_height'],
-            'wind_speed': weather_data['conditions']['wind_speed'],
+            'wave_height': conditions.get('wave_height'),
+            'wind_speed': conditions.get('wind_speed'),
             'next_update': weather_data['next_update'],
             'timestamp': weather_data['timestamp']
         }

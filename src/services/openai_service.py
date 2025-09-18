@@ -7,6 +7,8 @@ from typing import Dict, List, Optional
 import json
 from datetime import datetime
 
+from src.utils.weather import normalize_conditions
+
 class OpenAIService:
     def __init__(self):
         self.api_key = os.getenv('OPENAI_API_KEY')
@@ -40,7 +42,7 @@ class OpenAIService:
         Analisa condições meteorológicas e fornece recomendações para mergulho
         """
         try:
-            conditions = weather_data.get('conditions', {})
+            conditions = normalize_conditions(weather_data)
             location = weather_data.get('location', 'Local')
             
             prompt = f"""
@@ -72,7 +74,9 @@ class OpenAIService:
             )
             
             analysis = response.choices[0].message.content.strip()
-            
+            if not analysis:
+                analysis = self._get_mock_analysis(weather_data)['analysis']
+
             return {
                 'analysis': analysis,
                 'timestamp': datetime.utcnow().isoformat(),
@@ -244,18 +248,20 @@ class OpenAIService:
         """
         status = weather_data.get('status', 'GREEN')
         location = weather_data.get('location', 'Local')
-        
+        conditions = normalize_conditions(weather_data)
+
         mock_analyses = {
             'GREEN': f"As condições em {location} estão excelentes para mergulho. Ondas calmas e boa visibilidade proporcionam um ambiente ideal para todas as atividades subaquáticas. Recomendamos aproveitar estas condições favoráveis para mergulhos de exploração e treino de técnicas.",
             'YELLOW': f"As condições em {location} requerem atenção especial. Ondas moderadas e vento podem afetar a experiência de mergulho. Recomendamos que apenas mergulhadores experientes participem, com equipamento adequado e supervisão próxima.",
             'RED': f"As condições em {location} não são seguras para mergulho. Ondas altas e vento forte criam riscos significativos. Todas as atividades de mergulho devem ser suspensas até que as condições melhorem."
         }
-        
+
         return {
             'analysis': mock_analyses.get(status, mock_analyses['GREEN']),
             'timestamp': datetime.utcnow().isoformat(),
             'location': location,
-            'mock_data': True
+            'mock_data': True,
+            'conditions_analyzed': conditions
         }
     
     def _get_mock_recommendations(self, student_data: Dict) -> Dict:
