@@ -33,9 +33,10 @@ class AIService {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          message,
           messages: [
             { role: 'system', content: 'Você é o assistente virtual da JUSTDIVE Academy.' },
-          { role: 'user', content: message }
+            { role: 'user', content: message }
           ]
         })
       });
