@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchCurrentWeather } from '@/services/weatherApi'
 
-const WeatherWidget = ({ location = 'lagos', compact = false }) => {
+const WeatherWidget = ({ location = "berlengas", compact = false }) => {
   const [data, setData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(null)
