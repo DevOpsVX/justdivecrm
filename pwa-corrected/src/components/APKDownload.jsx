@@ -7,7 +7,7 @@ import {
   CheckCircle, 
   AlertCircle,
   Loader2,
-  Android
+  Smartphone
 } from 'lucide-react'
 
 const APKDownload = ({ className = '' }) => {
@@ -122,13 +122,13 @@ const APKDownload = ({ className = '' }) => {
         <div className="flex items-center space-x-4">
           <div className="flex-shrink-0">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <Android className="w-6 h-6 text-white" />
+              <Smartphone className="w-6 h-6 text-white" />
             </div>
           </div>
           
           <div className="flex-1">
             <h3 className="text-white font-bold text-lg mb-1">
-              App Android Nativo
+              App Smartphone Nativo
             </h3>
             <p className="text-green-100 text-sm mb-3">
               Widget meteorológico, notificações push e funcionalidades offline
@@ -167,7 +167,7 @@ const APKDownload = ({ className = '' }) => {
               <div className="text-sm text-white">
                 <p className="font-medium mb-1">APK baixado com sucesso!</p>
                 <p className="text-green-100">
-                  Ative "Fontes desconhecidas" nas configurações do Android e instale o aplicativo.
+                  Ative "Fontes desconhecidas" nas configurações do Smartphone e instale o aplicativo.
                 </p>
               </div>
             </div>
@@ -198,7 +198,7 @@ const APKDownload = ({ className = '' }) => {
             <span>~25 MB</span>
           </div>
           <div className="flex justify-between">
-            <span>Android:</span>
+            <span>Smartphone:</span>
             <span>6.0+</span>
           </div>
         </div>
