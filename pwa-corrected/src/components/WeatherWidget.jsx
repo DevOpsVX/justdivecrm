@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { fetchCurrentWeather } from '@/services/weatherApi'
 
-const WeatherWidget = ({ location = 'lagos', compact = false }) => {
+const WeatherWidget = ({ location = 'berlengas', compact = false }) => {
   const [data, setData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(null)
@@ -22,10 +22,13 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
   const load = async () => {
     try {
       const result = await fetchCurrentWeather(location)
-      setData(result)
+      const payload = result?.data ?? result
+      if (!payload) throw new Error('Resposta inválida do serviço meteorológico')
+      setData(payload)
       setLastUpdate(new Date())
     } catch (err) {
       console.error(err)
+      setData(null)
     }
   }
 
@@ -85,6 +88,10 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
   }
 
   const currentData = data
+    ? { ...data, status: (data.status ?? '').toLowerCase() }
+    : null
+
+  const currentStatus = currentData?.status ?? ''
 
   if (compact) {
     return (
@@ -95,10 +102,10 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
               <Cloud className="w-4 h-4 text-white" />
               <span className="text-white font-medium text-sm">Clima</span>
             </div>
-            <div className={`px-2 py-1 rounded-full ${getStatusColor(currentData.status)} flex items-center space-x-1`}>
-              {getStatusIcon(currentData.status)}
+            <div className={`px-2 py-1 rounded-full ${getStatusColor(currentStatus)} flex items-center space-x-1`}>
+              {getStatusIcon(currentStatus)}
               <span className="text-white text-xs font-bold">
-                {getStatusText(currentData.status)}
+                {getStatusText(currentStatus)}
               </span>
             </div>
           </div>
@@ -136,10 +143,10 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </Button>
 
-            <div className={`px-3 py-1 rounded-full ${getStatusColor(currentData.status)} flex items-center space-x-2`}>
-              {getStatusIcon(currentData.status)}
+            <div className={`px-3 py-1 rounded-full ${getStatusColor(currentStatus)} flex items-center space-x-2`}>
+              {getStatusIcon(currentStatus)}
               <span className="text-white font-bold">
-                {getStatusText(currentData.status)}
+                {getStatusText(currentStatus)}
               </span>
             </div>
           </div>
@@ -190,7 +197,7 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
         </div>
 
         {/* Próxima aula */}
-        {currentData.status === 'green' && (
+        {currentStatus === 'green' && (
           <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
             <p className="text-green-400 text-sm font-medium mb-1">Próxima Aula:</p>
             <p className="text-white text-sm">Aula Open Water - 14:00</p>
