@@ -1,7 +1,12 @@
 // Serviço de IA para aplicação web JUSTDIVE
 class AIService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const envBaseURL = import.meta.env?.VITE_API_URL;
+    const browserBaseURL = typeof window !== 'undefined' && window.location
+      ? window.location.origin
+      : null;
+
+    this.baseURL = envBaseURL || browserBaseURL || 'http://localhost:5000';
     this.conversationHistory = this.loadConversationHistory();
   }
 
@@ -29,15 +34,24 @@ class AIService {
   // Processar mensagem com IA
   async processMessage(message, weatherContext = null) {
     try {
+      const userMessage = typeof message === 'string'
+        ? message
+        : JSON.stringify(message);
+
+      const conversation = [
+        { role: 'system', content: 'Você é o assistente virtual da JUSTDIVE Academy.' },
+        { role: 'user', content: userMessage }
+      ];
+
+      const payload = {
+        message: userMessage,
+        messages: conversation
+      };
+
       const response = await fetch(`${this.baseURL}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: 'Você é o assistente virtual da JUSTDIVE Academy.' },
-          { role: 'user', content: message }
-          ]
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -47,14 +61,15 @@ class AIService {
       const data = await response.json();
       const aiResponse = data.response || 'Desculpe, não consegui processar a sua mensagem.';
 
-      this.addToHistory(message, aiResponse, weatherContext);
+      this.addToHistory(userMessage, aiResponse, weatherContext);
 
       return aiResponse;
     } catch (error) {
       console.error('Erro ao processar mensagem:', error);
 
       const fallbackResponse = 'Desculpe, estou com dificuldades técnicas no momento. Por favor, tente novamente em alguns instantes.';
-      this.addToHistory(message, fallbackResponse, { error: error.message });
+      const storedMessage = typeof message === 'string' ? message : JSON.stringify(message);
+      this.addToHistory(storedMessage, fallbackResponse, { error: error.message });
 
       return fallbackResponse;
     }
