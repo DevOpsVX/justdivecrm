@@ -2,10 +2,36 @@
 import { WidgetTaskHandler, Widget } from 'react-native-android-widget';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { buildApiUrl } from '../services/apiConfig';
 
-async function getWeather(location: string) {
-  const response = await fetch(`/api/weather/current/${location}`);
-  return response.json();
+type WidgetWeather = {
+  status: string;
+  temperature: number | string;
+};
+
+const DEFAULT_WIDGET_WEATHER: WidgetWeather = {
+  status: 'Dados indisponíveis',
+  temperature: '--',
+};
+
+async function getWeather(location: string): Promise<WidgetWeather> {
+  try {
+    const endpoint = buildApiUrl(`weather/current/${encodeURIComponent(location)}`);
+    const response = await fetch(endpoint);
+
+    if (!response.ok) {
+      throw new Error('Resposta inválida da API meteorológica.');
+    }
+
+    const data = await response.json();
+    return {
+      status: data?.status ?? DEFAULT_WIDGET_WEATHER.status,
+      temperature: data?.temperature ?? DEFAULT_WIDGET_WEATHER.temperature,
+    };
+  } catch (error) {
+    console.error('Erro ao atualizar o widget meteorológico', error);
+    return DEFAULT_WIDGET_WEATHER;
+  }
 }
 
 export const WeatherWidget: Widget = ({ weather }) => (
