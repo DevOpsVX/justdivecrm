@@ -103,12 +103,12 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
             </div>
           </div>
 
-          <div className="text-center">
-            <div className="text-2xl font-bold text-white mb-1">
+          <div className="text-center space-y-1">
+            <div className="text-3xl font-bold text-white">
               {currentData.temperature}°C
             </div>
             <div className="text-xs text-blue-200">
-              Ondas: {currentData.waveHeight}m | Vento: {currentData.windSpeed}km/h
+              Ondas: {currentData.waveHeight}m • Vento: {currentData.windSpeed}km/h
             </div>
           </div>
         </CardContent>
@@ -167,7 +167,21 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
           <div className="text-center space-y-2">
             <Waves className="w-6 h-6 text-white mx-auto" />
             <div className="text-xl font-bold text-white">
-                {currentData.humidity}%
-              </div>
-              <div className="text-xs text-blue-200">Umidade</div>
+              {currentData.humidity}%
             </div>
+            <div className="text-xs text-blue-200">Umidade</div>
+          </div>
+        </div>
+
+        {/* Última atualização (opcional) */}
+        {lastUpdate && (
+          <p className="text-center text-xs text-blue-300">
+            Atualizado em: {lastUpdate.toLocaleString()}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+export default WeatherWidget
