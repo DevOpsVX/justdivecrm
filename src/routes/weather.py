@@ -196,16 +196,26 @@ def get_weather_widget_data(location):
             return jsonify({'error': 'Local não encontrado'}), 404
         
         # Dados simplificados para widget
+        conditions = weather_data.get('conditions', {})
+
+        def get_metric(*keys, default=None):
+            for key in keys:
+                if key in weather_data and weather_data[key] is not None:
+                    return weather_data[key]
+                if key in conditions and conditions[key] is not None:
+                    return conditions[key]
+            return default
+
         widget_data = {
             'location': weather_data['location'],
             'status': weather_data['status'],
             'status_text': {
                 'GREEN': 'Condições Excelentes',
-                'YELLOW': 'Atenção Necessária', 
+                'YELLOW': 'Atenção Necessária',
                 'RED': 'Mergulho Cancelado'
             }.get(weather_data['status'], 'Status Desconhecido'),
-            'wave_height': weather_data['conditions']['wave_height'],
-            'wind_speed': weather_data['conditions']['wind_speed'],
+            'wave_height': get_metric('waveHeight', 'wave_height', default=0),
+            'wind_speed': get_metric('windSpeed', 'wind_speed', default=0),
             'next_update': weather_data['next_update'],
             'timestamp': weather_data['timestamp']
         }
