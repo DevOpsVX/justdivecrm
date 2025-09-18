@@ -16,8 +16,14 @@ class NotificationService:
 
     def register_token(self, token: str) -> None:
         """Store the Expo push token if it hasn't been registered yet."""
-        if token and token not in self.tokens:
+        if not token:
+            return
+
+        if token not in self.tokens:
             self.tokens.append(token)
+            print(f"Token de notificação registrado: {token}")
+        else:
+            print(f"Token de notificação já registrado: {token}")
 
     def send_notification(self, title: str, message: str) -> None:
         """
