@@ -7,6 +7,7 @@ import AIChat from './components/AIChat'
 import WeatherWidget from './components/WeatherWidget'
 import InstallPrompt from './components/InstallPrompt'
 import AIService from './services/AIService'
+import { fetchCurrentWeather } from './services/weatherApi'
 
 import WeatherOperations from './components/WeatherOperations'
 import ReservationsPage from './components/ReservationsPage'
@@ -58,11 +59,8 @@ function App() {
 
   const fetchWeatherData = async () => {
     try {
-      const response = await fetch('/api/weather/berlengas')
-      if (response.ok) {
-        const data = await response.json()
-        setWeatherData(prev => ({ ...prev, ...data }))
-      }
+      const data = await fetchCurrentWeather('Berlengas')
+      setWeatherData(prev => ({ ...prev, ...data }))
     } catch (error) {
       console.error('Erro ao buscar dados meteorológicos:', error)
       // Simular dados realistas em caso de erro
