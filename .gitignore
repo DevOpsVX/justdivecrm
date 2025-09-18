@@ -17,3 +17,4 @@ pwa-corrected/dist/
 # env
 .env
 .env.*
+pwa-corrected/node_modules/
