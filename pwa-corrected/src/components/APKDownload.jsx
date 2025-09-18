@@ -1,17 +1,16 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { 
-  Download, 
-  Smartphone, 
-  CheckCircle, 
+import {
+  Download,
+  Smartphone,
+  CheckCircle,
   AlertCircle,
-  Loader2,
-  Smartphone
+  Loader2
 } from 'lucide-react'
 
 const APKDownload = ({ className = '' }) => {
-  const [downloadState, setDownloadState] = useState('idle') // idle, downloading, success, error
+  const [downloadState, setDownloadState] = useState('idle') // idle | downloading | success | error
   const [downloadProgress, setDownloadProgress] = useState(0)
 
   const handleDownload = async () => {
@@ -26,13 +25,12 @@ const APKDownload = ({ className = '' }) => {
             clearInterval(progressInterval)
             return 100
           }
-          return prev + Math.random() * 15
+          return Math.min(100, prev + Math.random() * 15)
         })
       }, 200)
 
-      // Simular download do APK
+      // Simular download real do APK (coloque justdive-app.apk em /public)
       const response = await fetch('/justdive-app.apk')
-      
       if (!response.ok) {
         throw new Error('Erro ao baixar o APK')
       }
@@ -47,23 +45,21 @@ const APKDownload = ({ className = '' }) => {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      // Aguardar conclusão da animação
+      // Aguardar animação e finalizar
       setTimeout(() => {
-        clearInterval(progressInterval)
         setDownloadProgress(100)
         setDownloadState('success')
-        
+
         // Reset após 3 segundos
         setTimeout(() => {
           setDownloadState('idle')
           setDownloadProgress(0)
         }, 3000)
-      }, 1000)
-
-    } catch (error) {
-      console.error('Erro no download:', error)
+      }, 600)
+    } catch (err) {
+      console.error(err)
       setDownloadState('error')
-      
+
       // Reset após 3 segundos
       setTimeout(() => {
         setDownloadState('idle')
@@ -72,140 +68,75 @@ const APKDownload = ({ className = '' }) => {
     }
   }
 
-  const getButtonContent = () => {
-    switch (downloadState) {
-      case 'downloading':
-        return (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            Baixando... {Math.round(downloadProgress)}%
-          </>
-        )
-      case 'success':
-        return (
-          <>
-            <CheckCircle className="w-4 h-4 mr-2 text-green-400" />
-            Download Concluído!
-          </>
-        )
-      case 'error':
-        return (
-          <>
-            <AlertCircle className="w-4 h-4 mr-2 text-red-400" />
-            Erro no Download
-          </>
-        )
-      default:
-        return (
-          <>
-            <Download className="w-4 h-4 mr-2" />
-            Baixar APK
-          </>
-        )
+  const renderStatus = () => {
+    if (downloadState === 'downloading') {
+      return (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Loader2 className="w-6 h-6 animate-spin text-white" />
+          <div className="w-full max-w-xs">
+            <div className="h-2 w-full rounded bg-white/20">
+              <div
+                className="h-2 rounded bg-white"
+                style={{ width: `${downloadProgress}%` }}
+              />
+            </div>
+            <p className="text-blue-200 text-xs mt-1">
+              Baixando... {Math.floor(downloadProgress)}%
+            </p>
+          </div>
+        </div>
+      )
     }
-  }
 
-  const getButtonVariant = () => {
-    switch (downloadState) {
-      case 'success':
-        return 'default'
-      case 'error':
-        return 'destructive'
-      default:
-        return 'default'
+    if (downloadState === 'success') {
+      return (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <CheckCircle className="w-6 h-6 text-white" />
+          <p className="text-blue-100 text-sm">Download concluído!</p>
+        </div>
+      )
     }
+
+    if (downloadState === 'error') {
+      return (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <AlertCircle className="w-6 h-6 text-white" />
+          <p className="text-blue-100 text-sm">
+            Ocorreu um erro ao baixar o APK. Tente novamente.
+          </p>
+        </div>
+      )
+    }
+
+    // idle
+    return (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <Smartphone className="w-6 h-6 text-white" />
+        <p className="text-blue-100 text-sm">Pronto para baixar o app Android</p>
+      </div>
+    )
   }
 
   return (
-    <Card className={`bg-gradient-to-br from-green-600 to-green-800 border-green-500/30 ${className}`}>
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-4">
-          <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <Smartphone className="w-6 h-6 text-white" />
-            </div>
-          </div>
-          
-          <div className="flex-1">
-            <h3 className="text-white font-bold text-lg mb-1">
-              App Smartphone Nativo
-            </h3>
-            <p className="text-green-100 text-sm mb-3">
-              Widget meteorológico, notificações push e funcionalidades offline
-            </p>
-            
-            <div className="space-y-2">
-              <Button
-                onClick={handleDownload}
-                disabled={downloadState === 'downloading'}
-                variant={getButtonVariant()}
-                className="w-full bg-white text-green-800 hover:bg-green-50 font-semibold"
-              >
-                {getButtonContent()}
-              </Button>
-              
-              {downloadState === 'downloading' && (
-                <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="h-full bg-white transition-all duration-300 ease-out"
-                    style={{ width: `${downloadProgress}%` }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex-shrink-0">
-            <Smartphone className="w-8 h-8 text-white/70" />
-          </div>
-        </div>
-        
-        {downloadState === 'success' && (
-          <div className="mt-4 p-3 bg-white/10 rounded-lg border border-white/20">
-            <div className="flex items-start space-x-2">
-              <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-white">
-                <p className="font-medium mb-1">APK baixado com sucesso!</p>
-                <p className="text-green-100">
-                  Ative "Fontes desconhecidas" nas configurações do Smartphone e instale o aplicativo.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {downloadState === 'error' && (
-          <div className="mt-4 p-3 bg-red-500/20 rounded-lg border border-red-400/30">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-300 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-white">
-                <p className="font-medium mb-1">Erro no download</p>
-                <p className="text-red-100">
-                  Tente novamente ou contacte o suporte técnico.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div className="mt-4 text-xs text-green-200 space-y-1">
-          <div className="flex justify-between">
-            <span>Versão:</span>
-            <span>1.0.0</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Tamanho:</span>
-            <span>~25 MB</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Smartphone:</span>
-            <span>6.0+</span>
-          </div>
-        </div>
+    <Card className={`weather-widget-container border-white/20 ${className}`}>
+      <CardContent className="p-4 flex flex-col items-center gap-4">
+        {renderStatus()}
+
+        <Button
+          onClick={handleDownload}
+          disabled={downloadState === 'downloading'}
+          className="bg-white text-blue-900 hover:bg-blue-100"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          {downloadState === 'downloading' ? 'Baixando...' : 'Baixar APK'}
+        </Button>
+
+        <p className="text-[11px] text-blue-200">
+          Após o download, instale o APK nas configurações do seu Android.
+        </p>
       </CardContent>
     </Card>
   )
 }
 
 export default APKDownload
-
