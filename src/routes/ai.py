@@ -8,11 +8,21 @@ ai_bp = Blueprint('ai', __name__, url_prefix='/api/ai')
 def chat():
     """Endpoint de chat simples com o serviço OpenAI"""
     try:
-        data = request.get_json()
-        if not data or 'message' not in data:
+        data = request.get_json() or {}
+        message = data.get('message')
+
+        if message is None:
+            messages = data.get('messages')
+            if isinstance(messages, list) and messages:
+                # Tenta obter o conteúdo da última mensagem do histórico
+                for item in reversed(messages):
+                    if isinstance(item, dict) and item.get('content'):
+                        message = item['content']
+                        break
+
+        if not message:
             return jsonify({'error': 'Mensagem é obrigatória'}), 400
 
-        message = data['message']
         response_text = openai_service.chat(message)
         return jsonify({'success': True, 'response': response_text})
     except Exception as e:
