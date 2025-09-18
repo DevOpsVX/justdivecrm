@@ -11,20 +11,31 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { fetchCurrentWeather, WeatherData } from '../../services/weatherService';
+import { WEATHER_ERROR_MESSAGE } from '../../services/weatherApi';
 
 const { width } = Dimensions.get('window');
 
 export default function StudentDashboardScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loadingWeather, setLoadingWeather] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
   const nextClass = '14:30 - Mergulho Avançado';
 
   const loadWeather = async () => {
+    setWeatherError(null);
+    setLoadingWeather(true);
+
     try {
       const data = await fetchCurrentWeather('lagos');
       setWeatherData(data);
     } catch (err) {
-      console.error(err);
+      console.error('Erro ao carregar condições meteorológicas:', err);
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : WEATHER_ERROR_MESSAGE;
+      setWeatherError(message);
+      setWeatherData(null);
     } finally {
       setLoadingWeather(false);
     }
@@ -88,9 +99,11 @@ export default function StudentDashboardScreen() {
         {/* Weather Status Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Estado Meteorológico</Text>
-          {loadingWeather || !weatherData ? (
-            <Text style={{ color: 'white' }}>Carregando...</Text>
-          ) : (
+          {loadingWeather && !weatherData ? (
+            <Text style={styles.messageText}>Carregando...</Text>
+          ) : weatherError ? (
+            <Text style={styles.errorText}>{weatherError}</Text>
+          ) : weatherData ? (
             <View style={styles.weatherContainer}>
               <View
                 style={[
@@ -107,6 +120,8 @@ export default function StudentDashboardScreen() {
                 </Text>
               </View>
             </View>
+          ) : (
+            <Text style={styles.messageText}>Sem dados meteorológicos disponíveis.</Text>
           )}
         </View>
 
@@ -256,6 +271,8 @@ const styles = StyleSheet.create({
   weatherInfo: { flex: 1 },
   weatherStatus: { fontSize: 16, fontWeight: '600', color: 'white', marginBottom: 4 },
   weatherDetails: { fontSize: 14, color: '#A0AEC0' },
+  messageText: { color: 'white', textAlign: 'center' },
+  errorText: { color: '#F87171', textAlign: 'center', fontWeight: '600' },
   classContainer: { alignItems: 'flex-start' },
   classTime: { fontSize: 18, fontWeight: 'bold', color: '#00FFFF', marginBottom: 8 },
   classLocation: { fontSize: 14, color: '#A0AEC0', marginBottom: 16 },
