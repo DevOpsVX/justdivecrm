@@ -26,7 +26,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard')
   const [weatherData, setWeatherData] = useState({
     location: 'Berlengas',
-    status: 'GREEN',
+    status: 'green',
     temperature: 22,
     waterTemperature: 18,
     waveHeight: 1.2,
@@ -56,24 +56,56 @@ function App() {
     }
   }, [])
 
-  const fetchWeatherData = async () => {
+  const fetchWeatherData = async (selectedLocation) => {
+    const location = selectedLocation || weatherData?.location || 'Berlengas'
+
     try {
-      const response = await fetch('/api/weather/berlengas')
-      if (response.ok) {
-        const data = await response.json()
-        setWeatherData(prev => ({ ...prev, ...data }))
+      const response = await fetch(`/api/weather/current/${encodeURIComponent(location)}`, {
+        headers: { Accept: 'application/json' }
+      })
+
+      if (!response.ok) {
+        throw new Error(`Falha ao obter clima: ${response.status} ${response.statusText}`)
       }
+
+      const json = await response.json()
+      const data = json?.data || {}
+
+      setWeatherData(prev => {
+        const merged = {
+          ...prev,
+          ...data,
+          location: data.location || location
+        }
+
+        if (merged.status) {
+          merged.status = merged.status.toString().toLowerCase()
+        }
+
+        return merged
+      })
     } catch (error) {
       console.error('Erro ao buscar dados meteorológicos:', error)
       // Simular dados realistas em caso de erro
-      setWeatherData(prev => ({
-        ...prev,
-        temperature: Math.round(18 + Math.random() * 8),
-        waveHeight: Math.round((0.5 + Math.random() * 2) * 10) / 10,
-        windSpeed: Math.round(5 + Math.random() * 25),
-        visibility: Math.round(5 + Math.random() * 10),
-        status: Math.random() > 0.8 ? 'YELLOW' : Math.random() > 0.95 ? 'RED' : 'GREEN'
-      }))
+      setWeatherData(prev => {
+        const random = Math.random()
+        let fallbackStatus = 'green'
+        if (random > 0.95) {
+          fallbackStatus = 'red'
+        } else if (random > 0.8) {
+          fallbackStatus = 'yellow'
+        }
+
+        return {
+          ...prev,
+          temperature: Math.round(18 + Math.random() * 8),
+          waveHeight: Math.round((0.5 + Math.random() * 2) * 10) / 10,
+          windSpeed: Math.round(5 + Math.random() * 25),
+          visibility: Math.round(5 + Math.random() * 10),
+          status: fallbackStatus,
+          location: prev?.location || location
+        }
+      })
     }
   }
 
