@@ -58,10 +58,18 @@ function App() {
 
   const fetchWeatherData = async () => {
     try {
-      const response = await fetch('/api/weather/berlengas')
+      const locationSlug = encodeURIComponent((weatherData?.location || 'Berlengas').toLowerCase())
+      const response = await fetch(`/api/weather/current/${locationSlug}`)
       if (response.ok) {
-        const data = await response.json()
-        setWeatherData(prev => ({ ...prev, ...data }))
+        const payload = await response.json()
+        if (payload?.success && payload?.data) {
+          setWeatherData(prev => ({ ...prev, ...payload.data }))
+        } else {
+          console.error('Resposta inválida da API de meteorologia:', payload)
+          throw new Error('Resposta inválida da API de meteorologia')
+        }
+      } else {
+        throw new Error(`Falha na solicitação de meteorologia: ${response.status}`)
       }
     } catch (error) {
       console.error('Erro ao buscar dados meteorológicos:', error)
