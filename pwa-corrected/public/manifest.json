@@ -1,6 +1,6 @@
 {
   "name": "JUSTDIVE - Sistema de Gestão",
-  "short_name": "JUSTDIVE",
+  "short_name": "JustDive",
   "description": "Sistema profissional de gestão para academia de mergulho com IA e widget meteorológico",
   "start_url": "/",
   "display": "standalone",
@@ -12,11 +12,57 @@
       "src": "/favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "education", "sports"],
+  "categories": ["business", "education", "sports", "weather"],
   "lang": "pt-PT",
   "scope": "/",
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Condições de Mergulho",
+      "short_name": "Condições",
+      "description": "Ver condições meteorológicas atuais",
+      "url": "/dashboard/operations",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Simulador",
+      "short_name": "Simulador",
+      "description": "Testar funcionalidades do sistema",
+      "url": "/dashboard/simulator",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ]
 }
 

@@ -157,7 +157,7 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
         {/* Dados meteorológicos */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="text-center space-y-2">
-            <Thermometer className="w-6 h-6 text-white mx-auto" />
+            <Thermometer className="w-6 h-6 text-orange-400 mx-auto" />
             <div className="text-xl font-bold text-white">
               {currentData.temperature}°C
             </div>
@@ -165,13 +165,37 @@ const WeatherWidget = ({ location = 'lagos', compact = false }) => {
           </div>
 
           <div className="text-center space-y-2">
-            <Waves className="w-6 h-6 text-white mx-auto" />
+            <Waves className="w-6 h-6 text-cyan-400 mx-auto" />
             <div className="text-xl font-bold text-white">
-              {currentData.humidity}%
+              {currentData.waveHeight || '1.2'}m
             </div>
-            <div className="text-xs text-blue-200">Umidade</div>
+            <div className="text-xs text-blue-200">Ondas</div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <Wind className="w-6 h-6 text-gray-400 mx-auto" />
+            <div className="text-xl font-bold text-white">
+              {currentData.windSpeed || '15'} km/h
+            </div>
+            <div className="text-xs text-blue-200">Vento</div>
+          </div>
+
+          <div className="text-center space-y-2">
+            <Eye className="w-6 h-6 text-blue-400 mx-auto" />
+            <div className="text-xl font-bold text-white">
+              {currentData.visibility || '8'} km
+            </div>
+            <div className="text-xs text-blue-200">Visibilidade</div>
           </div>
         </div>
+
+        {/* Próxima aula */}
+        {currentData.status === 'green' && (
+          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+            <p className="text-green-400 text-sm font-medium mb-1">Próxima Aula:</p>
+            <p className="text-white text-sm">Aula Open Water - 14:00</p>
+          </div>
+        )}
 
         {/* Última atualização (opcional) */}
         {lastUpdate && (
