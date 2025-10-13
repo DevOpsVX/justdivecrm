@@ -5,22 +5,7 @@ module.exports = {
   slug: 'justdive-mobile',
   version: '1.0.0',
   plugins: [
-    [
-      'expo-widget',
-      {
-        // Widget name visible to the OS
-        name: 'JustDiveWeather',
-        // Path to the widget source code (relative to the project root)
-        codePath: './widgets/weather',
-        android: {
-          // Interval for the OS to refresh the widget (30 minutes)
-          updatePeriodMillis: 30 * 60 * 1000
-        },
-        ios: {
-          supportsWidgetStacks: true
-        }
-      }
-    ]
+
   ],
   // Use the high‑resolution logo provided by the client for the app icon
   icon: './assets/justdive.logo.png',
